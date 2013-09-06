@@ -1,5 +1,5 @@
 // A collection of responses (used in continuous mode)
-var SpeechRecognitionEvent = function() {
+var SpeechRecognitionResultList = function() {
     this._result = [];
     this.length = 0;
 };
