@@ -28,6 +28,8 @@ var SpeechRecognition = function () {
     this.onerror = null;
     this.onstart = null;
     this.onend = null;
+
+    exec(null, null, "SpeechRecognition", "init", []);
 };
 
 SpeechRecognition.prototype.start = function() {
