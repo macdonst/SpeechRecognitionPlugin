@@ -120,17 +120,24 @@ public class SpeechRecognition extends CordovaPlugin {
         return this.recognizerPresent;
     }
 
-    private void fireRecognitionEvent(ArrayList<String> transcripts, ArrayList<String> confidences) {
+    private void fireRecognitionEvent(ArrayList<String> transcripts, float[] confidences) {
         JSONObject event = new JSONObject();
         JSONArray results = new JSONArray();
-        JSONObject result = new JSONObject();
         try {
             for(int i=0; i<transcripts.size(); i++) {
+                JSONArray alternatives = new JSONArray();
+                JSONObject result = new JSONObject();
                 result.put("transcript", transcripts.get(i));
-                //result.put("confidence", confidences.get(i));
-                results.put(result);
+                result.put("final", true);
+                if (confidences != null) {
+                    result.put("confidence", confidences[i]);
+                }
+                alternatives.put(result);
+                results.put(alternatives);
             }
             event.put("type", "result");
+            event.put("emma", null);
+            event.put("interpretation", null);
             event.put("results", results);
         } catch (JSONException e) {
             // this will never happen
@@ -217,10 +224,10 @@ public class SpeechRecognition extends CordovaPlugin {
             String str = new String();
             Log.d(LOG_TAG, "onResults " + results);
             ArrayList<String> transcript = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-            //ArrayList<String> confidence = results.getStringArrayList(SpeechRecognizer.CONFIDENCE_SCORES);
+            float[] confidence = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
             if (transcript.size() > 0) {
                 Log.d(LOG_TAG, "fire recognition event");
-                fireRecognitionEvent(transcript, null);
+                fireRecognitionEvent(transcript, confidence);
             } else {
                 Log.d(LOG_TAG, "fire no match event");
                 fireEvent("nomatch");
