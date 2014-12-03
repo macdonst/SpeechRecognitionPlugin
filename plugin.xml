@@ -52,6 +52,32 @@
         </config-file>
 
         <source-file src="src/android/SpeechRecognition.java" target-dir="src/org/apache/cordova/speech" />      
-     </platform>
+    </platform>
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="SpeechRecognition">
+                <param name="ios-package" value="SpeechRecognition"/>
+            </feature>
+        </config-file>
+
+        <source-file src="src/ios/SpeechRecognition.m" />
+        <source-file src="src/ios/libiSpeechSDK.a" framework="true" />
+
+        <header-file src="src/ios/SpeechRecognition.h" />
+        <header-file src="src/ios/Headers/iSpeechSDK.h" />
+        <header-file src="src/ios/Headers/ISSpeechRecognition.h" />
+        <header-file src="src/ios/Headers/ISSpeechRecognitionLocales.h" />
+        <header-file src="src/ios/Headers/ISSpeechRecognitionResult.h" />
+        <header-file src="src/ios/Headers/ISSpeechSynthesis.h" />
+        <header-file src="src/ios/Headers/ISSpeechSynthesisVoices.h" />
+        
+
+        <framework src="AudioToolbox.framework" />
+        <framework src="SystemConfiguration.framework" />
+        <framework src="Security.framework" />
+        <framework src="CFNetwork.framework" />
+
+        <resource-file src="src/ios/iSpeechSDK.bundle" />
+    </platform>
           
 </plugin>
