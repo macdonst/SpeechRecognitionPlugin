@@ -176,10 +176,15 @@ typedef NSUInteger iSpeechErrorCode;
  */
 @property (nonatomic, copy, readonly) NSString *version;
 
+/** @name Getting the SDK Instance */
+
 /**
- * Returns whether the SDK is set up to record. If you attempt to do speech recognition while this is NO, the SDK will break.
+ * The single instance of the iSpeechSDK class.
+ * 
+ * @return Returns the shared instance of the SDK.
  */
 + (iSpeechSDK *)sharedSDK;
+
 /** @name Getting the Configuration Instance */
 
 /**
