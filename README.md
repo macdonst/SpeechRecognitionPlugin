@@ -60,6 +60,6 @@ Italian (Italy) (it-IT)
 Polish (Poland) (pl-PL) 	
 Portuguese (Portugal) (pt-PT)
 
-Two caracter codes can be used too, but for English, "en" will use "en-US" 
+Two-character codes can be used too, but for English, "en" will use "en-US" 
  
  
