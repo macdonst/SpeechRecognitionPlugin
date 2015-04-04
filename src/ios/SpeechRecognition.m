@@ -74,4 +74,18 @@
     
 }
 
+-(void)recognition:(ISSpeechRecognition *)speechRecognition didFailWithError:(NSError *)error {
+    
+    if (error.code == 28) {
+        NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
+        [event setValue:@"error" forKey:@"type"];
+        [event setValue:[NSNumber numberWithInt:7] forKey:@"error"];
+        [event setValue:[error localizedDescription] forKey:@"message"];
+        self.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:event];
+        [self.pluginResult setKeepCallbackAsBool:NO];
+        [self.commandDelegate sendPluginResult:self.pluginResult callbackId:self.command.callbackId];
+    }
+    
+}
+
 @end
