@@ -50,3 +50,6 @@ To provide the key, add this preference inside the config.xml
  ```
  If none is provided it will use the demo key "developerdemokeydeveloperdemokey"
  
+ Added iOS multiple language support, the supported languages are
+ 
+ 
