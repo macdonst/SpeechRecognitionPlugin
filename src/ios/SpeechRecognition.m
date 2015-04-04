@@ -12,7 +12,10 @@
 
 - (void) init:(CDVInvokedUrlCommand*)command {
     NSLog(@"init");
-    NSString* key = @"developerdemokeydeveloperdemokey";
+    NSString * key = [self.commandDelegate.settings objectForKey:[@"apiKey" lowercaseString]];
+    if (!key) {
+        key = @"developerdemokeydeveloperdemokey";
+    }
     iSpeechSDK *sdk = [iSpeechSDK sharedSDK];
     sdk.APIKey = key;
 }
