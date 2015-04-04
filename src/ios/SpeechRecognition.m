@@ -24,19 +24,26 @@
 - (void) start:(CDVInvokedUrlCommand*)command {
     
     self.command = command;
-    
+    NSString * lang = [command argumentAtIndex:0];
     NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
     [event setValue:@"start" forKey:@"type"];
     self.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:event];
     [self.pluginResult setKeepCallbackAsBool:YES];
     [self.commandDelegate sendPluginResult:self.pluginResult callbackId:self.command.callbackId];
-    [self recognize];
+    [self recognize:lang];
     
 }
 
-- (void)recognize {
+- (void)recognize:(NSString*)lang {
     ISSpeechRecognition *recognition = [[ISSpeechRecognition alloc] init];
     [recognition setDelegate:self];
+    if (lang) {
+        NSLog(@"lang %@",lang);
+        if ([lang isEqualToString:@"en"]) {
+            lang = @"en-US";
+        }
+        [recognition setLocale:lang];
+    }
     [recognition setFreeformType:ISFreeFormTypeDictation];
     
     NSError *error;
