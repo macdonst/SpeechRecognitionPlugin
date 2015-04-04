@@ -50,6 +50,16 @@ To provide the key, add this preference inside the config.xml
  ```
  If none is provided it will use the demo key "developerdemokeydeveloperdemokey"
  
- Added iOS multiple language support, the supported languages are
+ Added iOS multiple language support, the supported languages are:
+ 
+English (Canada) (en-CA) 	
+English (United States) (en-US) 	
+Spanish (Spain) (es-ES) 	
+French (France) (fr-FR) 	
+Italian (Italy) (it-IT) 	
+Polish (Poland) (pl-PL) 	
+Portuguese (Portugal) (pt-PT)
+
+Two caracter codes can be used too, but for English, "en" will use "en-US" 
  
  
