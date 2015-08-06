@@ -18,20 +18,24 @@ Update 2015/04/04
 
 Basic example is working on iOS and android
 ```
- <script type="text/javascript">
-    var recognition = new SpeechRecognition();
-    recognition.onresult = function(event) {
-      if (event.results.length > 0) {
-        q.value = event.results[0][0].transcript;
-        q.form.submit();
-      }
-    }
-  </script>
+<script type="text/javascript">
+var recognition;
+document.addEventListener('deviceready', onDeviceReady, false);
 
-  <form action="http://www.example.com/search">
+function onDeviceReady() {
+    recognition = new SpeechRecognition();
+    recognition.onresult = function(event) {
+        if (event.results.length > 0) {
+            q.value = event.results[0][0].transcript;
+            q.form.submit();
+        }
+    }
+}
+</script>
+<form action="http://www.example.com/search">
     <input type="search" id="q" name="q" size=60>
     <input type="button" value="Click to Speak" onclick="recognition.start()">
-  </form>
+</form>
 ```
 
 Example from section 6.1 Speech Recognition Examples of the W3C page
