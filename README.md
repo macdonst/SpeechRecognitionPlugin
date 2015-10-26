@@ -52,7 +52,7 @@ You must provide the proper permissions in your app's `AndroidManifest.xml` file
 ```
 
 ```
-cordova plugin add https://github.com/macdonst/SpeechRecognitionPlugin
+cordova plugin add https://github.com/milestester/SpeechRecognitionPlugin.git
 ```
 
 The iOS version uses iSpeech SDK, an API key is required, get one on https://www.ispeech.org/, it's free.
