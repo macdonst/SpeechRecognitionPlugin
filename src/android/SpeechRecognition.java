@@ -130,15 +130,16 @@ public class SpeechRecognition extends CordovaPlugin {
         JSONArray results = new JSONArray();
         try {
             for(int i=0; i<transcripts.size(); i++) {
-                JSONArray alternatives = new JSONArray();
                 JSONObject result = new JSONObject();
-                result.put("transcript", transcripts.get(i));
-                result.put("final", true);
+                JSONObject alternative = new JSONObject();
+                result.put("isFinal", true);
+                result.put("length",1);
+                result.put("0",alternative);
+                alternative.put("transcript", transcripts.get(i));
                 if (confidences != null) {
-                    result.put("confidence", confidences[i]);
+                    alternative.put("confidence", confidences[i]);
                 }
-                alternatives.put(result);
-                results.put(alternatives);
+                results.put(result);
             }
             event.put("type", "result");
             event.put("emma", null);
@@ -153,17 +154,18 @@ public class SpeechRecognition extends CordovaPlugin {
     }
 
     private void fireInterimRecognitionEvent(ArrayList<String> transcripts) {
+				Log.d(LOG_TAG,"hey, this is me. This is an interim result");
         JSONObject event = new JSONObject();
         JSONArray results = new JSONArray();
         try {
             for(int i=0; i<transcripts.size(); i++) {
-                JSONArray alternatives = new JSONArray();
                 JSONObject result = new JSONObject();
-                result.put("transcript", transcripts.get(i));
-								Log.d(LOG_TAG,"partial - " + transcripts.get(i));
-                result.put("final", false);
-                alternatives.put(result);
-                results.put(alternatives);
+                JSONObject alternative = new JSONObject();
+                result.put("isFinal", false);
+                result.put("length",1);
+                result.put("0",alternative);
+                alternative.put("transcript", transcripts.get(i));
+                results.put(result);
             }
             event.put("type", "result");
             event.put("emma", null);
