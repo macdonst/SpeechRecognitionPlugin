@@ -34,6 +34,7 @@ public class SpeechRecognition extends CordovaPlugin {
     private boolean recognizerPresent = false;
     private SpeechRecognizer recognizer;
     private boolean aborted = false;
+    private boolean listening = false;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) {
@@ -202,8 +203,11 @@ public class SpeechRecognition extends CordovaPlugin {
         @Override
         public void onError(int error) {
             Log.d(LOG_TAG, "error speech");
-            fireErrorEvent();
-            fireEvent("end");
+            if (listening) {
+                fireErrorEvent();
+                fireEvent("end");
+            }
+            listening = false;
         }
 
         @Override
@@ -219,6 +223,7 @@ public class SpeechRecognition extends CordovaPlugin {
         @Override
         public void onReadyForSpeech(Bundle params) {
             Log.d(LOG_TAG, "ready for speech");
+            listening = true;
         }
 
         @Override
@@ -235,6 +240,7 @@ public class SpeechRecognition extends CordovaPlugin {
                 Log.d(LOG_TAG, "fire no match event");
                 fireEvent("nomatch");
             }
+            listening = false;
         }
 
         @Override
