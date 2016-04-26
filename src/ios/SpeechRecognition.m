@@ -5,7 +5,7 @@
 
 #import "SpeechRecognition.h"
 #import "ISpeechSDK.h"
-
+#import <AVFoundation/AVAudioSession.h>
 
 @implementation SpeechRecognition
 
@@ -28,7 +28,7 @@
     NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
     [event setValue:@"start" forKey:@"type"];
     self.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:event];
-    [self.pluginResult setKeepCallbackAsBool:YES];
+    self.pluginResult.keepCallback = [NSNumber numberWithBool:YES];
     [self.commandDelegate sendPluginResult:self.pluginResult callbackId:self.command.callbackId];
     [self recognize:lang];
     
@@ -45,11 +45,22 @@
         [recognition setLocale:lang];
     }
     [recognition setFreeformType:ISFreeFormTypeDictation];
-    
-    NSError *error;
-    
-    if(![recognition listenAndRecognizeWithTimeout:10 error:&error]) {
-        NSLog(@"ERROR: %@", error);
+
+    if ([self isMicrophoneAvailable]) {
+        NSError *error;
+        
+        if(![recognition listenAndRecognizeWithTimeout:10 error:&error]) {
+            NSLog(@"ERROR: %@", error);
+        }
+    }
+    else {
+        NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
+        [event setValue:@"error" forKey:@"type"];
+        [event setValue:[NSNumber numberWithInt:7] forKey:@"error"];
+        [event setValue:@"Microphone access not allowed" forKey:@"message"];
+        self.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:event];
+        self.pluginResult.keepCallback = [NSNumber numberWithBool:YES];
+        [self.commandDelegate sendPluginResult:self.pluginResult callbackId:self.command.callbackId];
     }
 }
 
@@ -69,12 +80,12 @@
     [event setValue:results forKey:@"results"];
     
     self.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:event];
-    [self.pluginResult setKeepCallbackAsBool:YES];
+    self.pluginResult.keepCallback = [NSNumber numberWithBool:YES];
     [self.commandDelegate sendPluginResult:self.pluginResult callbackId:self.command.callbackId];
     
 }
 
--(void)recognition:(ISSpeechRecognition *)speechRecognition didFailWithError:(NSError *)error {
+- (void)recognition:(ISSpeechRecognition *)speechRecognition didFailWithError:(NSError *)error {
     
     if (error.code == 28) {
         NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
@@ -82,10 +93,17 @@
         [event setValue:[NSNumber numberWithInt:7] forKey:@"error"];
         [event setValue:[error localizedDescription] forKey:@"message"];
         self.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:event];
-        [self.pluginResult setKeepCallbackAsBool:NO];
+        self.pluginResult.keepCallback = [NSNumber numberWithBool:YES];
         [self.commandDelegate sendPluginResult:self.pluginResult callbackId:self.command.callbackId];
     }
     
+}
+
+- (BOOL)isMicrophoneAvailable {
+
+    AVAudioSessionRecordPermission permission = [[AVAudioSession sharedInstance] recordPermission];
+    return (permission == AVAudioSessionRecordPermissionGranted);
+
 }
 
 @end
