@@ -163,10 +163,42 @@ public class SpeechRecognition extends CordovaPlugin {
         this.speechRecognizerCallbackContext.sendPluginResult(pr); 
     }
 
-    private void fireErrorEvent() {
+    private void fireErrorEvent(int code) {
         JSONObject event = new JSONObject();
         try {
+            String errorMessage = "Recognition error";
+            switch(code) {
+                case 3:
+                    errorMessage = "Audio recording error.";
+                    break;
+                case 5:
+                    errorMessage = "Other client side errors.";
+                    break;
+                case 9:
+                    errorMessage = "Microphone access not allowed.";
+                    break;
+                case 2:
+                    errorMessage = "Other network related errors.";
+                    break;
+                case 1:
+                    errorMessage = "Network operation timed out.";
+                    break;
+                case 7:
+                    errorMessage = "No recognition result matched.";
+                    break;
+                case 8:
+                    errorMessage = "RecognitionService busy.";
+                    break;
+                case 4:
+                    errorMessage = "Server sends error status.";
+                    break;
+                case 6:
+                    errorMessage = "No speech input.";
+                    break;
+            }
+
             event.put("type","error");
+            event.put("type",errorMessage);
         } catch (JSONException e) {
             // this will never happen
         }
@@ -203,8 +235,8 @@ public class SpeechRecognition extends CordovaPlugin {
         @Override
         public void onError(int error) {
             Log.d(LOG_TAG, "error speech");
+            fireErrorEvent(error);
             if (listening) {
-                fireErrorEvent();
                 fireEvent("end");
             }
             listening = false;
