@@ -65,7 +65,7 @@ public class SpeechRecognition extends CordovaPlugin {
             }
             
             String lang = args.optString(0, "en");
-
+            boolean partial = args.optBoolean(1,false);
             this.speechRecognizerCallbackContext = callbackContext;
 
             final Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);        
@@ -75,6 +75,8 @@ public class SpeechRecognition extends CordovaPlugin {
 
             intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,5); 
             
+            intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,true);
+
             Handler loopHandler = new Handler(Looper.getMainLooper());
             loopHandler.post(new Runnable() {
 
@@ -124,7 +126,7 @@ public class SpeechRecognition extends CordovaPlugin {
         return this.recognizerPresent;
     }
 
-    private void fireRecognitionEvent(ArrayList<String> transcripts, float[] confidences) {
+    private void fireRecognitionEvent(ArrayList<String> transcripts, float[] confidences,String recognitionType) {
         JSONObject event = new JSONObject();
         JSONArray results = new JSONArray();
         try {
@@ -139,7 +141,10 @@ public class SpeechRecognition extends CordovaPlugin {
                 alternatives.put(result);
                 results.put(alternatives);
             }
-            event.put("type", "result");
+            if(recognitionType.equals("final-result"))
+                event.put("type", "result");
+            else if (recognitionType.equals("partial-result"))
+                event.put("type", "partial-result");
             event.put("emma", null);
             event.put("interpretation", null);
             event.put("results", results);
@@ -205,7 +210,8 @@ public class SpeechRecognition extends CordovaPlugin {
             Log.d(LOG_TAG, "error speech");
             if (listening) {
                 fireErrorEvent();
-                fireEvent("end");
+                //fireEvent("end");
+                fireEvent("error");
             }
             listening = false;
         }
@@ -218,16 +224,29 @@ public class SpeechRecognition extends CordovaPlugin {
         @Override
         public void onPartialResults(Bundle partialResults) {
             Log.d(LOG_TAG, "partial results");
+
+            Log.d(LOG_TAG, "results");
+            String str = new String();
+            Log.d(LOG_TAG, "onPartialResults " + partialResults);
+            ArrayList<String> transcript = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            float[] confidence = partialResults.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
+            if (transcript.size() > 0) {
+                Log.d(LOG_TAG, "fire recognition event");
+                fireRecognitionEvent(transcript, confidence,"partial-result");
+            } 
+
         }
 
         @Override
         public void onReadyForSpeech(Bundle params) {
             Log.d(LOG_TAG, "ready for speech");
             listening = true;
+            fireEvent("ready");
         }
 
         @Override
         public void onResults(Bundle results) {
+
             Log.d(LOG_TAG, "results");
             String str = new String();
             Log.d(LOG_TAG, "onResults " + results);
@@ -235,7 +254,7 @@ public class SpeechRecognition extends CordovaPlugin {
             float[] confidence = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
             if (transcript.size() > 0) {
                 Log.d(LOG_TAG, "fire recognition event");
-                fireRecognitionEvent(transcript, confidence);
+                fireRecognitionEvent(transcript, confidence,"final-result");
             } else {
                 Log.d(LOG_TAG, "fire no match event");
                 fireEvent("nomatch");

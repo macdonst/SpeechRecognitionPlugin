@@ -15,6 +15,7 @@ var SpeechRecognition = function () {
     this.interimResults = false;
     this.maxAlternatives = 1;
     this.serviceURI = "";
+    this.partialResult = false;
     
     // event methods
     this.onaudiostart = null;
@@ -28,6 +29,8 @@ var SpeechRecognition = function () {
     this.onerror = null;
     this.onstart = null;
     this.onend = null;
+    this.onpartial = null;
+    this.onready = null;
 
     exec(function() {
         console.log("initialized");
@@ -57,6 +60,12 @@ SpeechRecognition.prototype.start = function() {
             that.onnomatch(event);
         } else if (event.type === "start" && typeof that.onstart === "function") {
             that.onstart(event);
+        } else if (event.type === "ready" && typeof that.onready === "function") {
+            that.onready(event);
+        } else if (event.type === "partial-result" && typeof that.onpartial === "function") {
+            that.onpartial(event);
+        }else if (event.type === "error" && typeof that.onerror === "function") {
+            that.onerror(event);
         } else if (event.type === "end" && typeof that.onend === "function") {
             that.onend(event);
         }
@@ -67,7 +76,7 @@ SpeechRecognition.prototype.start = function() {
         }
     };
 
-    exec(successCallback, errorCallback, "SpeechRecognition", "start", [this.lang]);
+    exec(successCallback, errorCallback, "SpeechRecognition", "start", [this.lang,this.partialResult]);
 };
 
 SpeechRecognition.prototype.stop = function() {
