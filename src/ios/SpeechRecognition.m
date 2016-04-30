@@ -11,7 +11,7 @@
 
 
 - (void) init:(CDVInvokedUrlCommand*)command {
-    NSLog(@"init");
+
     NSString * key = [self.commandDelegate.settings objectForKey:[@"apiKey" lowercaseString]];
     if (!key) {
         key = @"developerdemokeydeveloperdemokey";
@@ -38,7 +38,6 @@
     ISSpeechRecognition *recognition = [[ISSpeechRecognition alloc] init];
     [recognition setDelegate:self];
     if (lang) {
-        NSLog(@"lang %@",lang);
         if ([lang isEqualToString:@"en"]) {
             lang = @"en-US";
         }
