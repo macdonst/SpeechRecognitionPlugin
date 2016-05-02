@@ -7,7 +7,8 @@
     <description>Cordova Speech Recognition Plugin</description>
     <license>Apache</license>
     <keywords>cordova,speech,recognition</keywords>
-
+    
+    <dependency id="cordova-plugin-compat" version="^1.0.0" />
 
     <js-module src="www/SpeechRecognition.js" name="SpeechRecognition">
         <clobbers target="SpeechRecognition" />

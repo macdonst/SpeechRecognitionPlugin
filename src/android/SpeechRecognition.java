@@ -2,6 +2,7 @@ package org.apache.cordova.speech;
 
 import java.util.ArrayList;
 
+import org.apache.cordova.PermissionHelper;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -10,6 +11,7 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
 
+import android.content.pm.PackageManager;
 import android.util.Log;
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,6 +20,7 @@ import android.os.Looper;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.Manifest;
 
 /**
  * Style and such borrowed from the TTS and PhoneListener plugins
@@ -35,6 +38,42 @@ public class SpeechRecognition extends CordovaPlugin {
     private SpeechRecognizer recognizer;
     private boolean aborted = false;
     private boolean listening = false;
+    private String lang;
+
+    private static String [] permissions = { Manifest.permission.RECORD_AUDIO };
+    private static int RECORD_AUDIO = 0;
+
+    protected void getMicPermission()
+    {
+        PermissionHelper.requestPermission(this, RECORD_AUDIO, permissions[RECORD_AUDIO]);
+    }
+
+    private void promptForMic()
+    {
+        if(PermissionHelper.hasPermission(this, permissions[RECORD_AUDIO])) {
+            this.startRecognition();
+        }
+        else
+        {
+            getMicPermission();
+        }
+
+    }
+
+    public void onRequestPermissionResult(int requestCode, String[] permissions,
+                                          int[] grantResults) throws JSONException
+    {
+        for(int r:grantResults)
+        {
+            if(r == PackageManager.PERMISSION_DENIED)
+            {
+                fireErrorEvent();
+                fireEvent("end");
+                return;
+            }
+        }
+        promptForMic();
+    }
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) {
@@ -63,31 +102,9 @@ public class SpeechRecognition extends CordovaPlugin {
             if (!recognizerPresent) {
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NOT_PRESENT_MESSAGE));
             }
-            
-            String lang = args.optString(0, "en");
-
+            this.lang = args.optString(0, "en");
             this.speechRecognizerCallbackContext = callbackContext;
-
-            final Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);        
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,"voice.recognition.test");
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,lang);
-
-            intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,5); 
-            
-            Handler loopHandler = new Handler(Looper.getMainLooper());
-            loopHandler.post(new Runnable() {
-
-                @Override
-                public void run() {
-                    recognizer.startListening(intent);
-                }
-                
-            });
-            
-            PluginResult res = new PluginResult(PluginResult.Status.NO_RESULT);
-            res.setKeepCallback(true);
-            callbackContext.sendPluginResult(res);
+            this.promptForMic();
         }
         else if (ACTION_SPEECH_RECOGNIZE_STOP.equals(action)) {
             stop(false);
@@ -101,6 +118,30 @@ public class SpeechRecognition extends CordovaPlugin {
             return false;
         }
         return true;
+    }
+
+    private void startRecognition() {
+
+        final Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,"voice.recognition.test");
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,lang);
+
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,5);
+
+        Handler loopHandler = new Handler(Looper.getMainLooper());
+        loopHandler.post(new Runnable() {
+
+            @Override
+            public void run() {
+                recognizer.startListening(intent);
+            }
+
+        });
+
+        PluginResult res = new PluginResult(PluginResult.Status.NO_RESULT);
+        res.setKeepCallback(true);
+        this.speechRecognizerCallbackContext.sendPluginResult(res);
     }
     
     private void stop(boolean abort) {
@@ -171,7 +212,7 @@ public class SpeechRecognition extends CordovaPlugin {
             // this will never happen
         }
         PluginResult pr = new PluginResult(PluginResult.Status.ERROR, event);
-        pr.setKeepCallback(false);
+        pr.setKeepCallback(true);
         this.speechRecognizerCallbackContext.sendPluginResult(pr); 
     }
 
@@ -202,8 +243,8 @@ public class SpeechRecognition extends CordovaPlugin {
 
         @Override
         public void onError(int error) {
-            Log.d(LOG_TAG, "error speech");
-            if (listening) {
+            Log.d(LOG_TAG, "error speech "+error);
+            if (listening || error == 9) {
                 fireErrorEvent();
                 fireEvent("end");
             }
