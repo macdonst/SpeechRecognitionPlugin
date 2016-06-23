@@ -8,6 +8,6 @@
 
 - (void) init:(CDVInvokedUrlCommand*)command;
 - (void) start:(CDVInvokedUrlCommand*)command;
+- (void) cancel;
 
 @end
-
