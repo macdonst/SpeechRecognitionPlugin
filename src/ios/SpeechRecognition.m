@@ -9,6 +9,7 @@
 
 @implementation SpeechRecognition
 
+@synthesize recognition;
 
 - (void) init:(CDVInvokedUrlCommand*)command {
 
@@ -18,11 +19,12 @@
     }
     iSpeechSDK *sdk = [iSpeechSDK sharedSDK];
     sdk.APIKey = key;
+    recognition = [[ISSpeechRecognition alloc] init];
 }
 
 
 - (void) start:(CDVInvokedUrlCommand*)command {
-    
+
     self.command = command;
     NSString * lang = [command argumentAtIndex:0];
     NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
@@ -31,11 +33,10 @@
     [self.pluginResult setKeepCallbackAsBool:YES];
     [self.commandDelegate sendPluginResult:self.pluginResult callbackId:self.command.callbackId];
     [self recognize:lang];
-    
+
 }
 
 - (void)recognize:(NSString*)lang {
-    ISSpeechRecognition *recognition = [[ISSpeechRecognition alloc] init];
     [recognition setDelegate:self];
     if (lang) {
         if ([lang isEqualToString:@"en"]) {
@@ -44,37 +45,37 @@
         [recognition setLocale:lang];
     }
     [recognition setFreeformType:ISFreeFormTypeDictation];
-    
+
     NSError *error;
-    
+
     if(![recognition listenAndRecognizeWithTimeout:10 error:&error]) {
         NSLog(@"ERROR: %@", error);
     }
 }
 
 - (void)recognition:(ISSpeechRecognition *)speechRecognition didGetRecognitionResult:(ISSpeechRecognitionResult *)result {
-    
+
     NSMutableDictionary * resultDict = [[NSMutableDictionary alloc]init];
     [resultDict setValue:result.text forKey:@"transcript"];
     [resultDict setValue:[NSNumber numberWithBool:YES] forKey:@"final"];
     [resultDict setValue:[NSNumber numberWithFloat:result.confidence]forKey:@"confidence"];
     NSArray * alternatives = @[resultDict];
     NSArray * results = @[alternatives];
-    
+
     NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
     [event setValue:@"result" forKey:@"type"];
     [event setValue:nil forKey:@"emma"];
     [event setValue:nil forKey:@"interpretation"];
     [event setValue:results forKey:@"results"];
-    
+
     self.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:event];
     [self.pluginResult setKeepCallbackAsBool:YES];
     [self.commandDelegate sendPluginResult:self.pluginResult callbackId:self.command.callbackId];
-    
+
 }
 
 -(void)recognition:(ISSpeechRecognition *)speechRecognition didFailWithError:(NSError *)error {
-    
+
     if (error.code == 28) {
         NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
         [event setValue:@"error" forKey:@"type"];
@@ -84,7 +85,15 @@
         [self.pluginResult setKeepCallbackAsBool:NO];
         [self.commandDelegate sendPluginResult:self.pluginResult callbackId:self.command.callbackId];
     }
-    
+
+}
+
+-(void) stop:(CDVInvokedUrlCommand*)command {
+  [recognition cancel];
+}
+
+-(void) abort:(CDVInvokedUrlCommand*)command {
+  [recognition cancel];
 }
 
 @end
