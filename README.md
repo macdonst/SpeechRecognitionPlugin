@@ -47,6 +47,19 @@ To install the plugin use
 cordova plugin add https://github.com/macdonst/SpeechRecognitionPlugin
 ```
 
+Since iOS 10 it's mandatory to add a `NSMicrophoneUsageDescription` in the info.plist to access the microphone.
+
+
+To add this entry you can pass the `MICROPHONE_USAGE_DESCRIPTION` variable on plugin install.
+
+
+Example:
+
+`cordova plugin add https://github.com/macdonst/SpeechRecognitionPlugin --variable MICROPHONE_USAGE_DESCRIPTION="your usage message"`
+
+If the variable is not provided it will use an empty message.
+
+
 The iOS version uses iSpeech SDK, an API key is required, get one on https://www.ispeech.org/, it's free.
 To provide the key, add this preference inside the config.xml
 ```
