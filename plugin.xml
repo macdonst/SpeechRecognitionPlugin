@@ -78,11 +78,16 @@
         <framework src="SystemConfiguration.framework" />
         <framework src="Security.framework" />
         <framework src="CFNetwork.framework" />
+        <framework src="Speech.framework" weak="true" />
 
         <resource-file src="src/ios/iSpeechSDK.bundle" />
         <preference name="MICROPHONE_USAGE_DESCRIPTION" default=" " />
         <config-file target="*-Info.plist" parent="NSMicrophoneUsageDescription">
             <string>$MICROPHONE_USAGE_DESCRIPTION</string>
+        </config-file>
+        <preference name="SPEECH_RECOGNITION_USAGE_DESCRIPTION" default=" " />
+        <config-file target="*-Info.plist" parent="NSSpeechRecognitionUsageDescription">
+            <string>$SPEECH_RECOGNITION_USAGE_DESCRIPTION</string>
         </config-file>
     </platform>
           
