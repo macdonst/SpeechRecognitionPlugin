@@ -57,17 +57,24 @@ Example:
 
 `cordova plugin add https://github.com/macdonst/SpeechRecognitionPlugin --variable MICROPHONE_USAGE_DESCRIPTION="your usage message"`
 
-If the variable is not provided it will use an empty message.
+If the variable is not provided it will use an empty message, but a usage description string is mandatory to submit your app to the Apple Store.
 
 
-The iOS version uses iSpeech SDK, an API key is required, get one on https://www.ispeech.org/, it's free.
+On iOS 10 and greater it uses the native SFSpeechRecognizer (same as Siri).
+
+Supported locales for SFSpeechRecognizer are:
+ro-RO, en-IN, he-IL, tr-TR, en-NZ, sv-SE, fr-BE, it-CH, de-CH, pl-PL, pt-PT, uk-UA, fi-FI, vi-VN, ar-SA, zh-TW, es-ES, en-GB, yue-CN, th-TH, en-ID, ja-JP, en-SA, en-AE, da-DK, fr-FR, sk-SK, de-AT, ms-MY, hu-HU, ca-ES, ko-KR, fr-CH, nb-NO, en-AU, el-GR, ru-RU, zh-CN, en-US, en-IE, nl-BE, es-CO, pt-BR, es-US, hr-HR, fr-CA, zh-HK, es-MX, id-ID, it-IT, nl-NL, cs-CZ, en-ZA, es-CL, en-PH, en-CA, en-SG, de-DE
+
+Two-character codes can be used too.
+
+On iOS 9 and older it uses iSpeech SDK, an API key is required, get one on https://www.ispeech.org/, it's free.
 To provide the key, add this preference inside the config.xml
 ```
  <preference name="apiKey" value="yourApiKeyHere" />
  ```
  If none is provided it will use the demo key "developerdemokeydeveloperdemokey"
  
- Added iOS multiple language support, the supported languages are:
+iSpeech supported languages are:
  
 English (Canada) (en-CA) 	
 English (United States) (en-US) 	
@@ -76,6 +83,7 @@ French (France) (fr-FR)
 Italian (Italy) (it-IT) 	
 Polish (Poland) (pl-PL) 	
 Portuguese (Portugal) (pt-PT)
+
 
 Two-character codes can be used too, but for English, "en" will use "en-US" 
  
