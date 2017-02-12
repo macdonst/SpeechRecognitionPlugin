@@ -72,58 +72,62 @@
 {
     NSLocale *locale = [[NSLocale alloc] initWithLocaleIdentifier:lang];
     self.sfSpeechRecognizer = [[SFSpeechRecognizer alloc] initWithLocale:locale];
+    if (!self.sfSpeechRecognizer) {
+        [self sendErrorWithMessage:@"The language is not supported" andCode:7];
+    } else {
 
-    // Cancel the previous task if it's running.
-    if ( self.recognitionTask ) {
-        [self.recognitionTask cancel];
-        self.recognitionTask = nil;
-    }
-
-    [self initAudioSession];
-
-    self.recognitionRequest = [[SFSpeechAudioBufferRecognitionRequest alloc] init];
-    self.recognitionRequest.shouldReportPartialResults = [[self.command argumentAtIndex:1] boolValue];
-
-    self.recognitionTask = [self.sfSpeechRecognizer recognitionTaskWithRequest:self.recognitionRequest resultHandler:^(SFSpeechRecognitionResult *result, NSError *error) {
-
-        if (error) {
-            [self stopAndRelease];
-            [self sendErrorWithMessage:error.localizedFailureReason andCode:error.code];
+        // Cancel the previous task if it's running.
+        if ( self.recognitionTask ) {
+            [self.recognitionTask cancel];
+            self.recognitionTask = nil;
         }
 
-        if (result) {
-            NSMutableArray * alternatives = [[NSMutableArray alloc] init];
-            int maxAlternatives = [[self.command argumentAtIndex:2] intValue];
-            for ( SFTranscription *transcription in result.transcriptions ) {
-                if (alternatives.count < maxAlternatives) {
-                    float confMed = 0;
-                    for ( SFTranscriptionSegment *transcriptionSegment in transcription.segments ) {
-                        NSLog(@"transcriptionSegment.confidence %f", transcriptionSegment.confidence);
-                        confMed +=transcriptionSegment.confidence;
+        [self initAudioSession];
+
+        self.recognitionRequest = [[SFSpeechAudioBufferRecognitionRequest alloc] init];
+        self.recognitionRequest.shouldReportPartialResults = [[self.command argumentAtIndex:1] boolValue];
+
+        self.recognitionTask = [self.sfSpeechRecognizer recognitionTaskWithRequest:self.recognitionRequest resultHandler:^(SFSpeechRecognitionResult *result, NSError *error) {
+
+            if (error) {
+                NSLog(@"error");
+                [self stopAndRelease];
+                [self sendErrorWithMessage:error.localizedFailureReason andCode:error.code];
+            }
+
+            if (result) {
+                NSMutableArray * alternatives = [[NSMutableArray alloc] init];
+                int maxAlternatives = [[self.command argumentAtIndex:2] intValue];
+                for ( SFTranscription *transcription in result.transcriptions ) {
+                    if (alternatives.count < maxAlternatives) {
+                        float confMed = 0;
+                        for ( SFTranscriptionSegment *transcriptionSegment in transcription.segments ) {
+                            NSLog(@"transcriptionSegment.confidence %f", transcriptionSegment.confidence);
+                            confMed +=transcriptionSegment.confidence;
+                        }
+                        NSMutableDictionary * resultDict = [[NSMutableDictionary alloc]init];
+                        [resultDict setValue:transcription.formattedString forKey:@"transcript"];
+                        [resultDict setValue:[NSNumber numberWithBool:result.isFinal] forKey:@"final"];
+                        [resultDict setValue:[NSNumber numberWithFloat:confMed/transcription.segments.count]forKey:@"confidence"];
+                        [alternatives addObject:resultDict];
                     }
-                    NSMutableDictionary * resultDict = [[NSMutableDictionary alloc]init];
-                    [resultDict setValue:transcription.formattedString forKey:@"transcript"];
-                    [resultDict setValue:[NSNumber numberWithBool:result.isFinal] forKey:@"final"];
-                    [resultDict setValue:[NSNumber numberWithFloat:confMed/transcription.segments.count]forKey:@"confidence"];
-                    [alternatives addObject:resultDict];
+                }
+                [self sendResults:@[alternatives]];
+                if ( result.isFinal ) {
+                    [self stopAndRelease];
                 }
             }
-            [self sendResults:@[alternatives]];
-            if ( result.isFinal ) {
-                [self stopAndRelease];
-            }
-        }
-    }];
+        }];
 
-    AVAudioFormat *recordingFormat = [self.audioEngine.inputNode outputFormatForBus:0];
+        AVAudioFormat *recordingFormat = [self.audioEngine.inputNode outputFormatForBus:0];
 
-    [self.audioEngine.inputNode installTapOnBus:0 bufferSize:1024 format:recordingFormat block:^(AVAudioPCMBuffer * _Nonnull buffer, AVAudioTime * _Nonnull when) {
-        [self.recognitionRequest appendAudioPCMBuffer:buffer];
-    }],
+        [self.audioEngine.inputNode installTapOnBus:0 bufferSize:1024 format:recordingFormat block:^(AVAudioPCMBuffer * _Nonnull buffer, AVAudioTime * _Nonnull when) {
+            [self.recognitionRequest appendAudioPCMBuffer:buffer];
+        }],
 
-    [self.audioEngine prepare];
-    [self.audioEngine startAndReturnError:nil];
-
+        [self.audioEngine prepare];
+        [self.audioEngine startAndReturnError:nil];
+    }
 }
 
 - (void) initAudioSession
@@ -154,7 +158,7 @@
 
 -(void) recognition:(ISSpeechRecognition *)speechRecognition didFailWithError:(NSError *)error
 {
-    if (error.code == 28) {
+    if (error.code == 28 || error.code == 23) {
         [self sendErrorWithMessage:[error localizedDescription] andCode:7];
     }
 }
