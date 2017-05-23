@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    id="org.apache.cordova.speech.speechrecognition"
-    version="0.1.2">
+    id="phonegap-plugin-speech-recognition"
+    version="0.2.0">
     <name>SpeechRecognition</name>
     <description>Cordova Speech Recognition Plugin</description>
-    <license>Apache</license>
+    <license>MIT</license>
     <keywords>cordova,speech,recognition</keywords>
     
     <dependency id="cordova-plugin-compat" version="^1.0.0" />
