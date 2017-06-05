@@ -22,6 +22,12 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.Manifest;
 
+import android.Manifest;
+import android.os.Build;
+import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+
 /**
  * Style and such borrowed from the TTS and PhoneListener plugins
  */
@@ -98,6 +104,15 @@ public class SpeechRecognition extends CordovaPlugin {
             }
         }
         else if (ACTION_SPEECH_RECOGNIZE_START.equals(action)) {
+            // request permission
+            if (!speechPermissionGranted()) {
+                ActivityCompat.requestPermissions(
+                  this.cordova.getActivity(),
+                  new String[] {Manifest.permission.RECORD_AUDIO},
+                  556);
+                return false;
+            }
+
             // recognize speech
             if (!recognizerPresent) {
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, NOT_PRESENT_MESSAGE));
@@ -155,6 +170,16 @@ public class SpeechRecognition extends CordovaPlugin {
             }
             
         });
+    }
+
+    private boolean speechPermissionGranted() {
+        if (Build.VERSION.SDK_INT < 23) {
+            return true;
+        }
+        if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this.cordova.getActivity(), Manifest.permission.RECORD_AUDIO)) {
+            return false;
+        }
+        return true;
     }
 
     /**
