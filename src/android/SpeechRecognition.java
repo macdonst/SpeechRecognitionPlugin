@@ -67,7 +67,7 @@ public class SpeechRecognition extends CordovaPlugin {
         {
             if(r == PackageManager.PERMISSION_DENIED)
             {
-                fireErrorEvent();
+                fireErrorEvent(r);
                 fireEvent("end");
                 return;
             }
@@ -204,10 +204,11 @@ public class SpeechRecognition extends CordovaPlugin {
         this.speechRecognizerCallbackContext.sendPluginResult(pr); 
     }
 
-    private void fireErrorEvent() {
+    private void fireErrorEvent(int error) {
         JSONObject event = new JSONObject();
         try {
             event.put("type","error");
+            event.put("error",error);
         } catch (JSONException e) {
             // this will never happen
         }
@@ -245,7 +246,7 @@ public class SpeechRecognition extends CordovaPlugin {
         public void onError(int error) {
             Log.d(LOG_TAG, "error speech "+error);
             if (listening || error == 9) {
-                fireErrorEvent();
+                fireErrorEvent(error);
                 fireEvent("end");
             }
             listening = false;
