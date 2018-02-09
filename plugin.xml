@@ -1,49 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    id="phonegap-plugin-speech-recognition"
-    version="0.2.0">
+<plugin
+    xmlns="http://www.phonegap.com/ns/plugins/1.0"
+    xmlns:android="http://schemas.android.com/apk/res/android" id="phonegap-plugin-speech-recognition" version="0.2.0">
     <name>SpeechRecognition</name>
     <description>Cordova Speech Recognition Plugin</description>
     <license>MIT</license>
     <keywords>cordova,speech,recognition</keywords>
-    
     <dependency id="cordova-plugin-compat" version="^1.0.0" />
-
-    <js-module src="www/SpeechRecognition.js" name="SpeechRecognition">
-        <clobbers target="SpeechRecognition" />
-    </js-module>
-
-    <js-module src="www/SpeechRecognitionError.js" name="SpeechRecognitionError">
-        <clobbers target="SpeechRecognitionError" />
-    </js-module>
-
-    <js-module src="www/SpeechRecognitionAlternative.js" name="SpeechRecognitionAlternative">
-        <clobbers target="SpeechRecognitionAlternative" />
-    </js-module>
-
-    <js-module src="www/SpeechRecognitionResult.js" name="SpeechRecognitionResult">
-        <clobbers target="SpeechRecognitionResult" />
-    </js-module>
-
-    <js-module src="www/SpeechRecognitionResultList.js" name="SpeechRecognitionResultList">
-        <clobbers target="SpeechRecognitionResultList" />
-    </js-module>
-
-    <js-module src="www/SpeechRecognitionEvent.js" name="SpeechRecognitionEvent">
-        <clobbers target="SpeechRecognitionEvent" />
-    </js-module>
-
-    <js-module src="www/SpeechGrammar.js" name="SpeechGrammar">
-        <clobbers target="SpeechGrammar" />
-    </js-module>
-
-    <js-module src="www/SpeechGrammarList.js" name="SpeechGrammarList">
-        <clobbers target="SpeechGrammarList" />
-    </js-module>
-
     <!-- android -->
     <platform name="android">
+        <js-module src="www/SpeechRecognition.js" name="SpeechRecognition">
+            <clobbers target="SpeechRecognition" />
+        </js-module>
+        <js-module src="www/SpeechRecognitionError.js" name="SpeechRecognitionError">
+            <clobbers target="SpeechRecognitionError" />
+        </js-module>
+        <js-module src="www/SpeechRecognitionAlternative.js" name="SpeechRecognitionAlternative">
+            <clobbers target="SpeechRecognitionAlternative" />
+        </js-module>
+        <js-module src="www/SpeechRecognitionResult.js" name="SpeechRecognitionResult">
+            <clobbers target="SpeechRecognitionResult" />
+        </js-module>
+        <js-module src="www/SpeechRecognitionResultList.js" name="SpeechRecognitionResultList">
+            <clobbers target="SpeechRecognitionResultList" />
+        </js-module>
+        <js-module src="www/SpeechRecognitionEvent.js" name="SpeechRecognitionEvent">
+            <clobbers target="SpeechRecognitionEvent" />
+        </js-module>
+        <js-module src="www/SpeechGrammar.js" name="SpeechGrammar">
+            <clobbers target="SpeechGrammar" />
+        </js-module>
+        <js-module src="www/SpeechGrammarList.js" name="SpeechGrammarList">
+            <clobbers target="SpeechGrammarList" />
+        </js-module>
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="SpeechRecognition">
                 <param name="android-package" value="org.apache.cordova.speech.SpeechRecognition"/>
@@ -52,19 +41,41 @@
         <config-file target="AndroidManifest.xml" parent="/*">
             <uses-permission android:name="android.permission.RECORD_AUDIO" />
         </config-file>
-
-        <source-file src="src/android/SpeechRecognition.java" target-dir="src/org/apache/cordova/speech" />      
+        <source-file src="src/android/SpeechRecognition.java" target-dir="src/org/apache/cordova/speech" />
     </platform>
+    <!-- ios -->
     <platform name="ios">
+        <js-module src="www/SpeechRecognition.js" name="SpeechRecognition">
+            <clobbers target="SpeechRecognition" />
+        </js-module>
+        <js-module src="www/SpeechRecognitionError.js" name="SpeechRecognitionError">
+            <clobbers target="SpeechRecognitionError" />
+        </js-module>
+        <js-module src="www/SpeechRecognitionAlternative.js" name="SpeechRecognitionAlternative">
+            <clobbers target="SpeechRecognitionAlternative" />
+        </js-module>
+        <js-module src="www/SpeechRecognitionResult.js" name="SpeechRecognitionResult">
+            <clobbers target="SpeechRecognitionResult" />
+        </js-module>
+        <js-module src="www/SpeechRecognitionResultList.js" name="SpeechRecognitionResultList">
+            <clobbers target="SpeechRecognitionResultList" />
+        </js-module>
+        <js-module src="www/SpeechRecognitionEvent.js" name="SpeechRecognitionEvent">
+            <clobbers target="SpeechRecognitionEvent" />
+        </js-module>
+        <js-module src="www/SpeechGrammar.js" name="SpeechGrammar">
+            <clobbers target="SpeechGrammar" />
+        </js-module>
+        <js-module src="www/SpeechGrammarList.js" name="SpeechGrammarList">
+            <clobbers target="SpeechGrammarList" />
+        </js-module>
         <config-file target="config.xml" parent="/*">
             <feature name="SpeechRecognition">
                 <param name="ios-package" value="SpeechRecognition"/>
             </feature>
         </config-file>
-
         <source-file src="src/ios/SpeechRecognition.m" />
         <source-file src="src/ios/libiSpeechSDK.a" framework="true" />
-
         <header-file src="src/ios/SpeechRecognition.h" />
         <header-file src="src/ios/Headers/iSpeechSDK.h" />
         <header-file src="src/ios/Headers/ISSpeechRecognition.h" />
@@ -72,14 +83,11 @@
         <header-file src="src/ios/Headers/ISSpeechRecognitionResult.h" />
         <header-file src="src/ios/Headers/ISSpeechSynthesis.h" />
         <header-file src="src/ios/Headers/ISSpeechSynthesisVoices.h" />
-        
-
         <framework src="AudioToolbox.framework" />
         <framework src="SystemConfiguration.framework" />
         <framework src="Security.framework" />
         <framework src="CFNetwork.framework" />
         <framework src="Speech.framework" weak="true" />
-
         <resource-file src="src/ios/iSpeechSDK.bundle" />
         <preference name="MICROPHONE_USAGE_DESCRIPTION" default=" " />
         <config-file target="*-Info.plist" parent="NSMicrophoneUsageDescription">
@@ -90,5 +98,9 @@
             <string>$SPEECH_RECOGNITION_USAGE_DESCRIPTION</string>
         </config-file>
     </platform>
-          
+    <platform name="browser">
+        <js-module src="www/browser/SpeechRecognition.js" name="SpeechRecognition">
+            <runs/>
+        </js-module>
+    </platform>
 </plugin>
