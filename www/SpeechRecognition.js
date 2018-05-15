@@ -65,7 +65,7 @@ SpeechRecognition.prototype.start = function() {
         if (typeof that.onerror === "function") {
             var error = new SpeechRecognitionError();
 
-            error.error = err.error;
+            error.error = SpeechRecognitionError._errorCodes[err.error];
             error.message = err.message;
 
             that.onerror(error);
