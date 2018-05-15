@@ -63,7 +63,12 @@ SpeechRecognition.prototype.start = function() {
     };
     var errorCallback = function(err) {
         if (typeof that.onerror === "function") {
-            that.onerror(err);
+            var error = new SpeechRecognitionError();
+
+            error.error = err.error;
+            error.message = err.message;
+
+            that.onerror(error);
         }
     };
 
