@@ -146,14 +146,15 @@
 
 - (void)recognition:(ISSpeechRecognition *)speechRecognition didGetRecognitionResult:(ISSpeechRecognitionResult *)result
 {
-    NSMutableDictionary * resultDict = [[NSMutableDictionary alloc]init];
-    [resultDict setValue:result.text forKey:@"transcript"];
-    [resultDict setValue:[NSNumber numberWithBool:YES] forKey:@"final"];
-    [resultDict setValue:[NSNumber numberWithFloat:result.confidence]forKey:@"confidence"];
-    NSArray * alternatives = @[resultDict];
+    NSMutableDictionary * alternativeDict = [[NSMutableDictionary alloc]init];
+    [alternativeDict setValue:result.text forKey:@"transcript"];
+    // The spec has the final attribute as part of the result and not per alternative.
+    // For backwards compatibility, we leave it here and let the Javascript add it to the result list.
+    [alternativeDict setValue:[NSNumber numberWithBool:YES] forKey:@"final"];
+    [alternativeDict setValue:[NSNumber numberWithFloat:result.confidence]forKey:@"confidence"];
+    NSArray * alternatives = @[alternativeDict];
     NSArray * results = @[alternatives];
     [self sendResults:results];
-
 }
 
 -(void) recognition:(ISSpeechRecognition *)speechRecognition didFailWithError:(NSError *)error
@@ -169,6 +170,7 @@
     [event setValue:@"result" forKey:@"type"];
     [event setValue:nil forKey:@"emma"];
     [event setValue:nil forKey:@"interpretation"];
+    [event setValue:[NSNumber numberWithInt:0] forKey:@"resultIndex"];
     [event setValue:results forKey:@"results"];
 
     self.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:event];

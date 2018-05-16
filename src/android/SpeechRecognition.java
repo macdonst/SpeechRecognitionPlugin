@@ -167,19 +167,22 @@ public class SpeechRecognition extends CordovaPlugin {
     private void fireRecognitionEvent(ArrayList<String> transcripts, float[] confidences) {
         JSONObject event = new JSONObject();
         JSONArray results = new JSONArray();
+        JSONArray alternatives = new JSONArray();
         try {
             for(int i=0; i<transcripts.size(); i++) {
-                JSONArray alternatives = new JSONArray();
-                JSONObject result = new JSONObject();
-                result.put("transcript", transcripts.get(i));
-                result.put("final", true);
+                JSONObject alternative = new JSONObject();
+                alternative.put("transcript", transcripts.get(i));
+                // The spec has the final attribute as part of the result and not per alternative.
+                // For backwards compatibility, we leave it here and let the Javascript add it to the result list.
+                alternative.put("final", true);
                 if (confidences != null) {
-                    result.put("confidence", confidences[i]);
+                    alternative.put("confidence", confidences[i]);
                 }
-                alternatives.put(result);
-                results.put(alternatives);
+                alternatives.put(alternative);
             }
+            results.put(alternatives);
             event.put("type", "result");
+            event.put("resultIndex", 0);
             event.put("emma", null);
             event.put("interpretation", null);
             event.put("results", results);
