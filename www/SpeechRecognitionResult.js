@@ -3,15 +3,7 @@
 var SpeechRecognitionResult = function () {
     Array.call(this);
 
-    this.final = false;
-
-    // Chrome's implementation uses isFinal. We define it to be compatible.
-    Object.defineProperty(this, "isFinal", {
-        enumerable: true,
-        get: function () {
-            return this.final;
-        }
-    });
+    this.isFinal = false;
 };
 
 SpeechRecognitionResult.prototype = new Array;

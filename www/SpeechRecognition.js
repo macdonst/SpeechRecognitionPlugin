@@ -53,7 +53,7 @@ function _formatResultEvent(ev) {
             alternative.transcript = alt[j].transcript;
             alternative.confidence = alt[j].confidence;
             if (alt[j].final) {
-                result.final = true;
+                result.isFinal = true;
             }
 
             result.push(alternative);
