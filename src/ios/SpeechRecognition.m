@@ -4,7 +4,7 @@
 //
 
 #import "SpeechRecognition.h"
-#import "ISpeechSDK.h"
+#import "iSpeechSDK.h"
 #import <Speech/Speech.h>
 
 @implementation SpeechRecognition

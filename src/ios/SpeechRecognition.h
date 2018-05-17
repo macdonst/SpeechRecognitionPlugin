@@ -1,5 +1,5 @@
 #import <Cordova/CDV.h>
-#import "ISpeechSDK.h"
+#import "iSpeechSDK.h"
 #import <Speech/Speech.h>
 
 @interface SpeechRecognition : CDVPlugin <ISSpeechRecognitionDelegate>

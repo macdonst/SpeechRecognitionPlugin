@@ -176,7 +176,6 @@ public class SpeechRecognition extends CordovaPlugin {
             for(int i=0; i<transcripts.size(); i++) {
                 JSONObject alternative = new JSONObject();
                 alternative.put("transcript", transcripts.get(i));
-
                 // The spec has the final (isFinal) attribute as part of the result and not per alternative.
                 // For backwards compatibility, we leave it here and let the Javascript add it to the result list.
                 alternative.put("final", isFinal);
