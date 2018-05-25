@@ -1,4 +1,5 @@
-var SpeechRecognitionError = function() {
+var SpeechRecognitionError = function () {
+    this.type = "error";
     this.error = null;
     this.message = null;
 };
