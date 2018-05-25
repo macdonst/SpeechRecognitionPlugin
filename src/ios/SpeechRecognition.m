@@ -102,7 +102,7 @@
                     if (alternatives.count < maxAlternatives) {
                         float confMed = 0;
                         for ( SFTranscriptionSegment *transcriptionSegment in transcription.segments ) {
-                            NSLog(@"transcriptionSegment.confidence %f", transcriptionSegment.confidence);
+                            //NSLog(@"transcriptionSegment.confidence %f", transcriptionSegment.confidence);
                             confMed +=transcriptionSegment.confidence;
                         }
                         NSMutableDictionary * resultDict = [[NSMutableDictionary alloc]init];
