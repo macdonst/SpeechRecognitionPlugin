@@ -12,6 +12,8 @@
 @property (nonatomic, strong) SFSpeechAudioBufferRecognitionRequest *recognitionRequest;
 @property (nonatomic, strong) SFSpeechRecognitionTask *recognitionTask;
 
+@property (assign) BOOL speechStartSent;
+
 - (void) init:(CDVInvokedUrlCommand*)command;
 - (void) start:(CDVInvokedUrlCommand*)command;
 - (void) stop:(CDVInvokedUrlCommand*)command;

@@ -24,11 +24,7 @@
 - (void) start:(CDVInvokedUrlCommand*)command
 {
     self.command = command;
-    NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
-    [event setValue:@"start" forKey:@"type"];
-    self.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:event];
-    [self.pluginResult setKeepCallbackAsBool:YES];
-    [self.commandDelegate sendPluginResult:self.pluginResult callbackId:self.command.callbackId];
+    [self sendEvent:(NSString *)@"start"];
     [self recognize];
 
 }
@@ -87,12 +83,19 @@
         self.recognitionRequest = [[SFSpeechAudioBufferRecognitionRequest alloc] init];
         self.recognitionRequest.shouldReportPartialResults = [[self.command argumentAtIndex:1] boolValue];
 
+        self.speechStartSent = FALSE;
+
         self.recognitionTask = [self.sfSpeechRecognizer recognitionTaskWithRequest:self.recognitionRequest resultHandler:^(SFSpeechRecognitionResult *result, NSError *error) {
 
             if (error) {
                 NSLog(@"error");
                 [self stopAndRelease];
                 [self sendErrorWithMessage:error.localizedFailureReason andCode:error.code];
+            }
+
+            if(!self.speechStartSent) {
+                [self sendEvent:(NSString *)@"speechstart"];
+                self.speechStartSent = TRUE;
             }
 
             if (result) {
@@ -114,6 +117,11 @@
                 }
                 [self sendResults:@[alternatives]];
                 if ( result.isFinal ) {
+                    if(self.speechStartSent) {
+                        [self sendEvent:(NSString *)@"speechend"];
+                        self.speechStartSent = FALSE;
+                    }
+
                     [self stopAndRelease];
                 }
             }
@@ -127,6 +135,8 @@
 
         [self.audioEngine prepare];
         [self.audioEngine startAndReturnError:nil];
+
+        [self sendEvent:(NSString *)@"audiostart"];
     }
 }
 
@@ -189,6 +199,15 @@
     [self.commandDelegate sendPluginResult:self.pluginResult callbackId:self.command.callbackId];
 }
 
+-(void) sendEvent:(NSString *) eventType
+{
+    NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
+    [event setValue:eventType forKey:@"type"];
+    self.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:event];
+    [self.pluginResult setKeepCallbackAsBool:YES];
+    [self.commandDelegate sendPluginResult:self.pluginResult callbackId:self.command.callbackId];
+}
+
 -(void) stop:(CDVInvokedUrlCommand*)command
 {
     [self stopOrAbort];
@@ -204,6 +223,8 @@
     if (NSClassFromString(@"SFSpeechRecognizer")) {
         if (self.audioEngine.isRunning) {
             [self.audioEngine stop];
+            [self sendEvent:(NSString *)@"audioend"];
+
             [self.recognitionRequest endAudio];
         }
     } else {
@@ -213,10 +234,15 @@
 
 -(void) stopAndRelease
 {
-    [self.audioEngine stop];
+    if (self.audioEngine.isRunning) {
+        [self.audioEngine stop];
+        [self sendEvent:(NSString *)@"audioend"];
+    }
     [self.audioEngine.inputNode removeTapOnBus:0];
     self.recognitionRequest = nil;
     self.recognitionTask = nil;
+
+    [self sendEvent:(NSString *)@"end"];
 }
 
 @end
