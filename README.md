@@ -50,20 +50,20 @@ Installation
 To install the plugin, use 
 
 ```
-cordova plugin add phonegap-plugin-speech-recognition --variable MICROPHONE_USAGE_DESCRIPTION="your usage message"
+cordova plugin add phonegap-plugin-speech-recognition --variable MICROPHONE_USAGE_DESCRIPTION="your usage message" --variable SPEECH_RECOGNITION_USAGE_DESCRIPTION="your usage message"
 ```
 
 To install the plugin from Github, use
 
 ```
-cordova plugin add https://github.com/macdonst/SpeechRecognitionPlugin --variable MICROPHONE_USAGE_DESCRIPTION="your usage message"
+cordova plugin add https://github.com/macdonst/SpeechRecognitionPlugin --variable MICROPHONE_USAGE_DESCRIPTION="your usage message" --variable SPEECH_RECOGNITION_USAGE_DESCRIPTION="your usage message"
 ```
 
 iOS Quirks
 ==========
 
-Since iOS 10 it's mandatory to add a `NSMicrophoneUsageDescription` in the info.plist to access the microphone.
-To add this entry you can pass the `MICROPHONE_USAGE_DESCRIPTION` variable on plugin install.
+Since iOS 10 it's mandatory to add `NSMicrophoneUsageDescription` and `NSSpeechRecognitionUsageDescription` in the info.plist to access the microphone and speech recognition.
+To add this entry you can pass the `MICROPHONE_USAGE_DESCRIPTION` and `SPEECH_RECOGNITION_USAGE_DESCRIPTION` variables on plugin install.
 
 If the variable is not provided it will use an empty message, but a usage description string is mandatory to submit your app to the Apple Store.
 
