@@ -62,15 +62,25 @@ cordova plugin add https://github.com/macdonst/SpeechRecognitionPlugin --variabl
 iOS Quirks
 ==========
 
-Since iOS 10 it's mandatory to add `NSMicrophoneUsageDescription` and `NSSpeechRecognitionUsageDescription` in the info.plist to access the microphone and speech recognition.
-To add this entry you can pass the `MICROPHONE_USAGE_DESCRIPTION` and `SPEECH_RECOGNITION_USAGE_DESCRIPTION` variables on plugin install.
+By default, this plugin sets up the app to only allow for audio input.
+As such, after the first recognition request, the app will no longer allow for audio output.
 
-If the variable is not provided it will use an empty message, but a usage description string is mandatory to submit your app to the Apple Store.
+If you need to also support audio output, for example with the `phonegap-plugin-speech-synthesis` plugin,
+enable audio output with the `speechRecognitionAllowAudioOutput` preference in the `config.xml` file:
+```
+ <preference name="speechRecognitionAllowAudioOutput" value="true" />
+```
+
 
 iOS 10 and Newer
 ----------------
 
 On iOS 10 and greater it uses the native SFSpeechRecognizer (same as Siri).
+
+Since iOS 10 it's mandatory to add `NSMicrophoneUsageDescription` and `NSSpeechRecognitionUsageDescription` in the info.plist to access the microphone and speech recognition.
+To add this entry you can pass the `MICROPHONE_USAGE_DESCRIPTION` and `SPEECH_RECOGNITION_USAGE_DESCRIPTION` variables on plugin install.
+
+If the variable is not provided it will use an empty message, but a usage description string is mandatory to submit your app to the Apple Store.
 
 Supported locales for SFSpeechRecognizer are:
 * ar-SA
