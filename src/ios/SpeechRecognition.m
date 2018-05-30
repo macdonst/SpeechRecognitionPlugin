@@ -17,6 +17,15 @@
     }
     iSpeechSDK *sdk = [iSpeechSDK sharedSDK];
     sdk.APIKey = key;
+
+    NSString * output = [self.commandDelegate.settings objectForKey:[@"speechRecognitionAllowAudioOutput" lowercaseString]];
+    if(output && [output caseInsensitiveCompare:@"true"] == NSOrderedSame) {
+        self.sessionCategory = AVAudioSessionCategoryPlayAndRecord;
+    } else {
+        self.sessionCategory = AVAudioSessionCategoryRecord;
+    }
+    self.audioSession = Nil;
+
     self.iSpeechRecognition = [[ISSpeechRecognition alloc] init];
     self.audioEngine = [[AVAudioEngine alloc] init];
 }
@@ -26,7 +35,6 @@
     self.command = command;
     [self sendEvent:(NSString *)@"start"];
     [self recognize];
-
 }
 
 - (void) recognize
@@ -142,10 +150,12 @@
 
 - (void) initAudioSession
 {
-    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
-    [audioSession setCategory:AVAudioSessionCategoryRecord error:nil];
-    [audioSession setMode:AVAudioSessionModeMeasurement error:nil];
-    [audioSession setActive:YES withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
+    if(!self.audioSession) {
+        self.audioSession = [AVAudioSession sharedInstance];
+        [self.audioSession setMode:AVAudioSessionModeMeasurement error:nil];
+        [self.audioSession setCategory:self.sessionCategory error:nil];
+        [self.audioSession setActive:YES withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
+    }
 }
 
 - (BOOL) permissionIsSet
@@ -239,8 +249,18 @@
         [self sendEvent:(NSString *)@"audioend"];
     }
     [self.audioEngine.inputNode removeTapOnBus:0];
+
+    [self.recognitionRequest endAudio];
     self.recognitionRequest = nil;
+
+    if(self.recognitionTask.state != SFSpeechRecognitionTaskStateCompleted) {
+        [self.recognitionTask cancel];
+    }
     self.recognitionTask = nil;
+
+    if(self.audioSession) {
+        [self.audioSession setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
+    }
 
     [self sendEvent:(NSString *)@"end"];
 }
