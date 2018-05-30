@@ -11,27 +11,46 @@
 
 - (void) init:(CDVInvokedUrlCommand*)command
 {
-    NSString * key = [self.commandDelegate.settings objectForKey:[@"apiKey" lowercaseString]];
+    NSString * key = [self.commandDelegate.settings objectForKey:[@"speechRecognitionApiKey" lowercaseString]];
     if (!key) {
-        key = @"developerdemokeydeveloperdemokey";
+        // If the new prefixed preference is not available, fall back to the original
+        // preference name for backwards compatibility.
+        key = [self.commandDelegate.settings objectForKey:[@"apiKey" lowercaseString]];
+        if (!key) {
+            key = @"developerdemokeydeveloperdemokey";
+        }
     }
-    iSpeechSDK *sdk = [iSpeechSDK sharedSDK];
-    sdk.APIKey = key;
+
+    if([key caseInsensitiveCompare:@"disable"] == NSOrderedSame) {
+        // If the API key is set to "disable", then don't allow use of the iSpeech service.
+        self.iSpeechRecognition = Nil;
+    } else {
+        iSpeechSDK *sdk = [iSpeechSDK sharedSDK];
+        sdk.APIKey = key;
+        self.iSpeechRecognition = [[ISSpeechRecognition alloc] init];
+    }
 
     NSString * output = [self.commandDelegate.settings objectForKey:[@"speechRecognitionAllowAudioOutput" lowercaseString]];
     if(output && [output caseInsensitiveCompare:@"true"] == NSOrderedSame) {
+        // If the allow audio output preference is set, the need to change the session category.
+        // This allows for speech recognition and speech synthesis to be used in the same app.
         self.sessionCategory = AVAudioSessionCategoryPlayAndRecord;
     } else {
+        // Maintain the original functionality for backwards compatibility.
         self.sessionCategory = AVAudioSessionCategoryRecord;
     }
-    self.audioSession = Nil;
 
-    self.iSpeechRecognition = [[ISSpeechRecognition alloc] init];
+    self.audioSession = Nil;
     self.audioEngine = [[AVAudioEngine alloc] init];
 }
 
 - (void) start:(CDVInvokedUrlCommand*)command
 {
+    if (!NSClassFromString(@"SFSpeechRecognizer") && !self.iSpeechRecognition) {
+        [self sendErrorWithMessage:@"No speech recognizer service available." andCode:4];
+        return;
+    }
+
     self.command = command;
     [self sendEvent:(NSString *)@"start"];
     [self recognize];
@@ -61,7 +80,7 @@
         } else {
             [self recordAndRecognizeWithLang:lang];
         }
-    } else {
+    } else if(self.iSpeechRecognition) {
         [self.iSpeechRecognition setDelegate:self];
         [self.iSpeechRecognition setLocale:lang];
         [self.iSpeechRecognition setFreeformType:ISFreeFormTypeDictation];
@@ -237,8 +256,10 @@
 
             [self.recognitionRequest endAudio];
         }
-    } else {
+    } else if(self.iSpeechRecognition) {
         [self.iSpeechRecognition cancel];
+    } else {
+        [self sendErrorWithMessage:@"No speech recognizer service available." andCode:4];
     }
 }
 
