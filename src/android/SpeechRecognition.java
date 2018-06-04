@@ -231,8 +231,6 @@ public class SpeechRecognition extends CordovaPlugin {
         @Override
         public void onBeginningOfSpeech() {
             Log.d(LOG_TAG, "begin speech");
-            fireEvent("start");
-            fireEvent("audiostart");
             fireEvent("soundstart");
             fireEvent("speechstart");
         }
@@ -255,7 +253,35 @@ public class SpeechRecognition extends CordovaPlugin {
         public void onError(int error) {
             Log.d(LOG_TAG, "error speech "+error);
             if (listening || error == 9) {
-                fireErrorEvent(4, "Error " + error);
+                switch(error) {
+                    case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
+                        fireErrorEvent(4, "Permission denied.");
+                        break;
+
+                    case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                        fireErrorEvent(0, "Timeout.");
+                        break;
+
+                    case SpeechRecognizer.ERROR_NETWORK:
+                        fireErrorEvent(3, "Network communication error.");
+                        break;
+
+                    case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
+                        fireErrorEvent(3, "Network timeout.");
+                        break;
+
+                    case SpeechRecognizer.ERROR_AUDIO:
+                        fireErrorEvent(2, "Audio recording error.");
+                        break;
+
+                    case SpeechRecognizer.ERROR_CLIENT:
+                        fireErrorEvent(4, "Client side error.");
+                        break;
+
+                    default:
+                        fireErrorEvent(4, "Error " + error);
+                        break;
+                }
                 fireEvent("end");
             }
             listening = false;
@@ -268,7 +294,7 @@ public class SpeechRecognition extends CordovaPlugin {
 
         @Override
         public void onPartialResults(Bundle partialResults) {
-            Log.d(LOG_TAG, "partial results");
+            //Log.d(LOG_TAG, "partial results");
             String str = new String();
             Log.d(LOG_TAG, "onPartialResults " + partialResults);
             ArrayList<String> transcript = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
@@ -282,12 +308,14 @@ public class SpeechRecognition extends CordovaPlugin {
         @Override
         public void onReadyForSpeech(Bundle params) {
             Log.d(LOG_TAG, "ready for speech");
+            fireEvent("start");
+            fireEvent("audiostart");
             listening = true;
         }
 
         @Override
         public void onResults(Bundle results) {
-            Log.d(LOG_TAG, "results");
+            //Log.d(LOG_TAG, "results");
             String str = new String();
             Log.d(LOG_TAG, "onResults " + results);
             ArrayList<String> transcript = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
