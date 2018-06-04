@@ -39,6 +39,7 @@ var SpeechRecognition = function () {
 function _formatResultEvent(ev) {
     var event = new SpeechRecognitionEvent();
 
+    event.type = ev.type;
     event.resultIndex = ev.resultIndex;
     event.emma = ev.emma;
     event.interpretation = ev.interpretation;
@@ -83,7 +84,7 @@ SpeechRecognition.prototype.start = function () {
         } else if (event.type === "result" && typeof that.onresult === "function") {
             that.onresult(_formatResultEvent(event));
         } else if (event.type === "nomatch" && typeof that.onnomatch === "function") {
-            that.onnomatch(event);
+            that.onnomatch(_formatResultEvent(event));
         } else if (event.type === "start" && typeof that.onstart === "function") {
             that.onstart(event);
         } else if (event.type === "end" && typeof that.onend === "function") {

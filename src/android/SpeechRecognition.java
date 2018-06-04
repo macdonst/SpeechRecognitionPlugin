@@ -168,7 +168,9 @@ public class SpeechRecognition extends CordovaPlugin {
         return this.recognizerPresent;
     }
 
-    private void fireRecognitionEvent(ArrayList<String> transcripts, float[] confidences, boolean isFinal) {
+    private void fireRecognitionEvent(String type, ArrayList<String> transcripts, float[] confidences, boolean isFinal) {
+        Log.d(LOG_TAG, "fire recognition event: " + type);
+
         JSONObject event = new JSONObject();
         JSONArray results = new JSONArray();
         JSONArray alternatives = new JSONArray();
@@ -187,7 +189,7 @@ public class SpeechRecognition extends CordovaPlugin {
                 alternatives.put(alternative);
             }
             results.put(alternatives);
-            event.put("type", "result");
+            event.put("type", type);
             event.put("resultIndex", 0);
             event.put("emma", null);
             event.put("interpretation", null);
@@ -201,6 +203,7 @@ public class SpeechRecognition extends CordovaPlugin {
     }
 
     private void fireEvent(String type) {
+        Log.d(LOG_TAG, "fire event: " + type);
         JSONObject event = new JSONObject();
         try {
             event.put("type",type);
@@ -213,6 +216,7 @@ public class SpeechRecognition extends CordovaPlugin {
     }
 
     private void fireErrorEvent(int errorCode, String message) {
+        Log.d(LOG_TAG, "fire error event: " + errorCode + " - " + message);
         JSONObject event = new JSONObject();
         try {
             event.put("type","error");
@@ -278,10 +282,26 @@ public class SpeechRecognition extends CordovaPlugin {
                         fireErrorEvent(4, "Client side error.");
                         break;
 
+                    case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
+                        fireErrorEvent(4, "Busy.");
+                        break;
+
+                    case SpeechRecognizer.ERROR_SERVER:
+                        fireErrorEvent(4, "Server error.");
+                        break;
+
+                    case SpeechRecognizer.ERROR_NO_MATCH:
+                        Log.d(LOG_TAG, "SpeechRecognizer.ERROR_NO_MATCH");
+                        ArrayList<String> transcript = new ArrayList<String>();
+                        float[] confidence = {};
+                        fireRecognitionEvent("nomatch", transcript, confidence, true);
+                        break;
+
                     default:
                         fireErrorEvent(4, "Error " + error);
                         break;
                 }
+                fireEvent("audioend");
                 fireEvent("end");
             }
             listening = false;
@@ -294,14 +314,11 @@ public class SpeechRecognition extends CordovaPlugin {
 
         @Override
         public void onPartialResults(Bundle partialResults) {
-            //Log.d(LOG_TAG, "partial results");
-            String str = new String();
             Log.d(LOG_TAG, "onPartialResults " + partialResults);
             ArrayList<String> transcript = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             float[] confidence = partialResults.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
             if (transcript.size() > 0) {
-                Log.d(LOG_TAG, "fire recognition event");
-                fireRecognitionEvent(transcript, confidence, false);
+                fireRecognitionEvent("result", transcript, confidence, false);
             }
         }
 
@@ -315,17 +332,13 @@ public class SpeechRecognition extends CordovaPlugin {
 
         @Override
         public void onResults(Bundle results) {
-            //Log.d(LOG_TAG, "results");
-            String str = new String();
             Log.d(LOG_TAG, "onResults " + results);
             ArrayList<String> transcript = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
             float[] confidence = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
             if (transcript.size() > 0) {
-                Log.d(LOG_TAG, "fire recognition event");
-                fireRecognitionEvent(transcript, confidence, true);
+                fireRecognitionEvent("result", transcript, confidence, true);
             } else {
-                Log.d(LOG_TAG, "fire no match event");
-                fireEvent("nomatch");
+                fireRecognitionEvent("nomatch", transcript, confidence, true);
             }
             listening = false;
         }
