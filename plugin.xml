@@ -6,8 +6,10 @@
     <description>Cordova Speech Recognition Plugin</description>
     <license>MIT</license>
     <keywords>cordova,speech,recognition</keywords>
-    <dependency id="cordova-plugin-compat" version="^1.2.0" />
-    <!-- android -->
+  <engines>
+    <engine name="cordova-android" version=">=6.3.0" />
+  </engines>
+  <!-- android -->
     <platform name="android">
         <js-module src="www/SpeechRecognition.js" name="SpeechRecognition">
             <clobbers target="SpeechRecognition" />
