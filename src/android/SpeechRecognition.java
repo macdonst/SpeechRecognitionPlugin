@@ -250,7 +250,6 @@ public class SpeechRecognition extends CordovaPlugin {
             fireEvent("speechend");
             fireEvent("soundend");
             fireEvent("audioend");
-            fireEvent("end");
         }
 
         @Override
@@ -341,6 +340,7 @@ public class SpeechRecognition extends CordovaPlugin {
                 fireRecognitionEvent("nomatch", transcript, confidence, true);
             }
             listening = false;
+            fireEvent("end");
         }
 
         @Override
