@@ -32,6 +32,7 @@ public class SpeechRecognition extends CordovaPlugin {
     public static final String ACTION_SPEECH_RECOGNIZE_STOP = "stop";
     public static final String ACTION_SPEECH_RECOGNIZE_ABORT = "abort";
     public static final String NOT_PRESENT_MESSAGE = "Speech recognition is not present or enabled";
+    public static final String SERVICE_URI_LOCAL = "local";
 
     private CallbackContext speechRecognizerCallbackContext;
     private boolean recognizerPresent = false;
@@ -41,6 +42,7 @@ public class SpeechRecognition extends CordovaPlugin {
     private boolean interimResults = false;
     private int maxAlternatives = 1;
     private String lang;
+    private String serviceURI;
 
     private static String [] permissions = { Manifest.permission.RECORD_AUDIO };
     private static int RECORD_AUDIO = 0;
@@ -107,6 +109,8 @@ public class SpeechRecognition extends CordovaPlugin {
             this.lang = args.optString(0, "en");
             this.interimResults = args.optBoolean(1, false);
             this.maxAlternatives = args.optInt(2, 1);
+            this.serviceURI = args.optString(3, "");
+
             this.speechRecognizerCallbackContext = callbackContext;
             this.promptForMic();
         }
@@ -131,6 +135,9 @@ public class SpeechRecognition extends CordovaPlugin {
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,lang);
         intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,interimResults);
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,maxAlternatives);
+        if (SERVICE_URI_LOCAL.equals(serviceURI)) {
+            intent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
+        }
 
         Handler loopHandler = new Handler(Looper.getMainLooper());
         loopHandler.post(new Runnable() {
