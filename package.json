@@ -9,7 +9,7 @@
   "engines": {
     "cordovaDependencies": {
       "0.3.0": { "cordova-android": ">6.3.0" }
-    },
+    }
   },
   "repository": {
     "type": "git",
