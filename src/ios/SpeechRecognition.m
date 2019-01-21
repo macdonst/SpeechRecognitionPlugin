@@ -38,6 +38,7 @@
         self.sessionCategory = AVAudioSessionCategoryRecord;
     }
 
+    self.resetAudioEngine = NO;
     self.audioEngine = [[AVAudioEngine alloc] init];
     self.audioSession = [AVAudioSession sharedInstance];
 
@@ -84,10 +85,12 @@
         // re-initialize the audioEngine to adapt to the different
         // sampling rate of the Bluetooth headset (8kHz) vs the mic (44.1kHz).
 
-        // TODO: Do we need to stop/abort recognition before doing this???
+        NSLog(@"[sr] Need to reset audioEngine");
+        self.resetAudioEngine = YES;
 
-        NSLog(@"[sr] Reseting audioEngine");
-        self.audioEngine = [self.audioEngine init];
+        // If we are currently running, we need to stop and release the
+        // existing recognition tasks. Otherwise, nothing gets received.
+        [self stopAndRelease];
     }
 }
 
@@ -110,6 +113,13 @@
 
     self.command = command;
     [self sendEvent:(NSString *)@"start"];
+    
+    if(self.resetAudioEngine) {
+        NSLog(@"[sr] Reseting audioEngine");
+        self.audioEngine = [self.audioEngine init];
+        self.resetAudioEngine = NO;
+    }
+
     [self recognize];
 }
 
@@ -281,7 +291,9 @@
         [self.audioEngine stop];
         [self sendEvent:(NSString *)@"audioend"];
 
-        [self.recognitionRequest endAudio];
+        if(self.recognitionRequest) {
+            [self.recognitionRequest endAudio];
+        }
     }
 }
 
@@ -294,13 +306,17 @@
     }
     [self.audioEngine.inputNode removeTapOnBus:0];
 
-    [self.recognitionRequest endAudio];
-    self.recognitionRequest = nil;
-
-    if(self.recognitionTask.state != SFSpeechRecognitionTaskStateCompleted) {
-        [self.recognitionTask cancel];
+    if(self.recognitionRequest) {
+        [self.recognitionRequest endAudio];
+        self.recognitionRequest = nil;
     }
-    self.recognitionTask = nil;
+
+    if(self.recognitionTask) {
+        if(self.recognitionTask.state != SFSpeechRecognitionTaskStateCompleted) {
+            [self.recognitionTask cancel];
+        }
+        self.recognitionTask = nil;
+    }
 
     /* TODO: Disabled for now.
      * Maybe should be performed by HeadsetControl.disconnect???

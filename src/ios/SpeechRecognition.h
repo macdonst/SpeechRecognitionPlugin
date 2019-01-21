@@ -13,6 +13,7 @@
 
 @property (assign) NSString *sessionCategory;
 @property (assign) BOOL speechStartSent;
+@property (assign) BOOL resetAudioEngine;
 
 - (void) init:(CDVInvokedUrlCommand*)command;
 - (void) start:(CDVInvokedUrlCommand*)command;
