@@ -4,7 +4,6 @@
 //
 
 #import "SpeechRecognition.h"
-#import "iSpeechSDK.h"
 #import <Speech/Speech.h>
 
 #if 0
@@ -27,26 +26,7 @@
     // re-initialized in this case.
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(routeChanged:) name:AVAudioSessionRouteChangeNotification object:nil];
 
-    // This may be called multiple times by different instances of the Javascript SpeechRecognition object.
     DBG(@"[sr] pluginInitialize()");
-    NSString * key = [self.commandDelegate.settings objectForKey:[@"speechRecognitionApiKey" lowercaseString]];
-    if (!key) {
-        // If the new prefixed preference is not available, fall back to the original
-        // preference name for backwards compatibility.
-        key = [self.commandDelegate.settings objectForKey:[@"apiKey" lowercaseString]];
-        if (!key) {
-            key = @"developerdemokeydeveloperdemokey";
-        }
-    }
-
-    if([key caseInsensitiveCompare:@"disable"] == NSOrderedSame) {
-        // If the API key is set to "disable", then don't allow use of the iSpeech service.
-        self.iSpeechRecognition = Nil;
-    } else {
-        iSpeechSDK *sdk = [iSpeechSDK sharedSDK];
-        sdk.APIKey = key;
-        self.iSpeechRecognition = [[ISSpeechRecognition alloc] init];
-    }
 
     NSString * output = [self.commandDelegate.settings objectForKey:[@"speechRecognitionAllowAudioOutput" lowercaseString]];
     if(output && [output caseInsensitiveCompare:@"true"] == NSOrderedSame) {
@@ -123,7 +103,7 @@
 - (void) start:(CDVInvokedUrlCommand*)command
 {
     DBG(@"[sr] start()");
-    if (!NSClassFromString(@"SFSpeechRecognizer") && !self.iSpeechRecognition) {
+    if (!NSClassFromString(@"SFSpeechRecognizer")) {
         [self sendErrorWithMessage:@"No speech recognizer service available." andCode:4];
         return;
     }
@@ -140,31 +120,18 @@
         lang = @"en-US";
     }
 
-    if (NSClassFromString(@"SFSpeechRecognizer")) {
-
-        if (![self permissionIsSet]) {
-            [SFSpeechRecognizer requestAuthorization:^(SFSpeechRecognizerAuthorizationStatus status){
-                dispatch_async(dispatch_get_main_queue(), ^{
-
-                    if (status == SFSpeechRecognizerAuthorizationStatusAuthorized) {
-                        [self recordAndRecognizeWithLang:lang];
-                    } else {
-                        [self sendErrorWithMessage:@"Permission not allowed" andCode:4];
-                    }
-
-                });
-            }];
-        } else {
-            [self recordAndRecognizeWithLang:lang];
-        }
-    } else if(self.iSpeechRecognition) {
-        [self.iSpeechRecognition setDelegate:self];
-        [self.iSpeechRecognition setLocale:lang];
-        [self.iSpeechRecognition setFreeformType:ISFreeFormTypeDictation];
-        NSError *error;
-        if(![self.iSpeechRecognition listenAndRecognizeWithTimeout:10 error:&error]) {
-            NSLog(@"[sr] ERROR: %@", error);
-        }
+    if (![self permissionIsSet]) {
+        [SFSpeechRecognizer requestAuthorization:^(SFSpeechRecognizerAuthorizationStatus status){
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (status == SFSpeechRecognizerAuthorizationStatusAuthorized) {
+                    [self recordAndRecognizeWithLang:lang];
+                } else {
+                    [self sendErrorWithMessage:@"Permission not allowed" andCode:4];
+                }
+            });
+        }];
+    } else {
+        [self recordAndRecognizeWithLang:lang];
     }
 }
 
@@ -260,27 +227,6 @@
     return status != SFSpeechRecognizerAuthorizationStatusNotDetermined;
 }
 
-- (void)recognition:(ISSpeechRecognition *)speechRecognition didGetRecognitionResult:(ISSpeechRecognitionResult *)result
-{
-    NSMutableDictionary * alternativeDict = [[NSMutableDictionary alloc]init];
-    [alternativeDict setValue:result.text forKey:@"transcript"];
-    // The spec has the final attribute as part of the result and not per alternative.
-    // For backwards compatibility, we leave it here and let the Javascript add it to the result list.
-    [alternativeDict setValue:[NSNumber numberWithBool:YES] forKey:@"final"];
-    [alternativeDict setValue:[NSNumber numberWithFloat:result.confidence]forKey:@"confidence"];
-    NSArray * alternatives = @[alternativeDict];
-    NSArray * results = @[alternatives];
-    [self sendResults:results];
-}
-
--(void) recognition:(ISSpeechRecognition *)speechRecognition didFailWithError:(NSError *)error
-{
-    NSLog(@"[sr] recognition() failed with error (%d) %@", (int) error.code, error.localizedDescription);
-    if (error.code == 28 || error.code == 23) {
-        [self sendErrorWithMessage:[error localizedDescription] andCode:7];
-    }
-}
-
 -(void) sendResults:(NSArray *) results
 {
     NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
@@ -331,17 +277,11 @@
 -(void) stopOrAbort
 {
     DBG(@"[sr] stopOrAbort()");
-    if (NSClassFromString(@"SFSpeechRecognizer")) {
-        if (self.audioEngine.isRunning) {
-            [self.audioEngine stop];
-            [self sendEvent:(NSString *)@"audioend"];
+    if (self.audioEngine.isRunning) {
+        [self.audioEngine stop];
+        [self sendEvent:(NSString *)@"audioend"];
 
-            [self.recognitionRequest endAudio];
-        }
-    } else if(self.iSpeechRecognition) {
-        [self.iSpeechRecognition cancel];
-    } else {
-        [self sendErrorWithMessage:@"No speech recognizer service available." andCode:4];
+        [self.recognitionRequest endAudio];
     }
 }
 

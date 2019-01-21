@@ -1,12 +1,10 @@
 #import <Cordova/CDV.h>
-#import "iSpeechSDK.h"
 #import <Speech/Speech.h>
 
-@interface SpeechRecognition : CDVPlugin <ISSpeechRecognitionDelegate>
+@interface SpeechRecognition : CDVPlugin
 
 @property (nonatomic, strong) CDVInvokedUrlCommand * command;
 @property (nonatomic, strong) CDVPluginResult* pluginResult;
-@property (nonatomic, strong) ISSpeechRecognition* iSpeechRecognition;
 @property (nonatomic, strong) SFSpeechRecognizer *sfSpeechRecognizer;
 @property (nonatomic, strong) AVAudioEngine *audioEngine;
 @property (nonatomic, strong) AVAudioSession *audioSession;
