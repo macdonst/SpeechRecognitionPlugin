@@ -1,16 +1,34 @@
 //
 //  Created by jcesarmobile on 30/11/14.
-//
+//  Updates and enhancements by Wayne Fisher (Fisherlea Systems) 2018-2019.
 //
 
 #import "SpeechRecognition.h"
 #import "iSpeechSDK.h"
 #import <Speech/Speech.h>
 
+#if 0
+#define DBG(a)          NSLog(a)
+#define DBG1(a, b)      NSLog(a, b)
+#define DBG2(a, b, c)   NSLog(a, b, c)
+#else
+#define DBG(a)
+#define DBG1(a, b)
+#define DBG2(a, b, c)
+#endif
+
 @implementation SpeechRecognition
 
-- (void) init:(CDVInvokedUrlCommand*)command
-{
+- (void) pluginInitialize {
+    NSError *error;
+
+    // We need to be notified of route changes to know when a
+    // Bluetooth headset becomes active. The audioEngine needs to be
+    // re-initialized in this case.
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(routeChanged:) name:AVAudioSessionRouteChangeNotification object:nil];
+
+    // This may be called multiple times by different instances of the Javascript SpeechRecognition object.
+    DBG(@"[sr] pluginInitialize()");
     NSString * key = [self.commandDelegate.settings objectForKey:[@"speechRecognitionApiKey" lowercaseString]];
     if (!key) {
         // If the new prefixed preference is not available, fall back to the original
@@ -40,12 +58,71 @@
         self.sessionCategory = AVAudioSessionCategoryRecord;
     }
 
-    self.audioSession = Nil;
     self.audioEngine = [[AVAudioEngine alloc] init];
+    self.audioSession = [AVAudioSession sharedInstance];
+
+    if(![self.audioSession setCategory:self.sessionCategory
+                                  mode:AVAudioSessionModeMeasurement
+                               options:(AVAudioSessionCategoryOptionAllowBluetooth|AVAudioSessionCategoryOptionAllowBluetoothA2DP)
+                                 error:&error]) {
+        NSLog(@"[sr] Unable to setCategory: %@", error);
+    }
+}
+
+- (void)routeChanged:(NSNotification *)notification {
+    BOOL resetAudioEngine = NO;
+
+    NSNumber *reason = [notification.userInfo objectForKey:AVAudioSessionRouteChangeReasonKey];
+
+    DBG(@"[sr] routeChanged()");
+
+    AVAudioSessionRouteDescription *route;
+    AVAudioSessionPortDescription *port;
+
+    if ([reason unsignedIntegerValue] == AVAudioSessionRouteChangeReasonNewDeviceAvailable) {
+        NSLog(@"[sr] AVAudioSessionRouteChangeReasonNewDeviceAvailable");
+        resetAudioEngine = YES;
+
+        route = self.audioSession.currentRoute;
+        port = route.inputs[0];
+        NSLog(@"[sr] New device is %@", port.portType);
+    } else if ([reason unsignedIntegerValue] == AVAudioSessionRouteChangeReasonOldDeviceUnavailable) {
+        NSLog(@"[sr] AVAudioSessionRouteChangeReasonOldDeviceUnavailable");
+        resetAudioEngine = YES;
+
+        route = [notification.userInfo objectForKey:AVAudioSessionRouteChangePreviousRouteKey];
+        port = route.inputs[0];
+        NSLog(@"[sr] Removed device %@", port.portType);
+
+        route = self.audioSession.currentRoute;
+        port = route.inputs[0];
+        NSLog(@"[sr] Now using device %@", port.portType);
+    }
+
+    if(resetAudioEngine) {
+        // If a Bluetooth device has been added or removed, we need to
+        // re-initialize the audioEngine to adapt to the different
+        // sampling rate of the Bluetooth headset (8kHz) vs the mic (44.1kHz).
+
+        // TODO: Do we need to stop/abort recognition before doing this???
+
+        NSLog(@"[sr] Reseting audioEngine");
+        self.audioEngine = [self.audioEngine init];
+    }
+}
+
+- (void) init:(CDVInvokedUrlCommand*)command
+{
+    // This may be called multiple times by different instances of the Javascript SpeechRecognition object.
+    NSLog(@"[sr] init()");
+
+    self.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:self.pluginResult callbackId:command.callbackId];
 }
 
 - (void) start:(CDVInvokedUrlCommand*)command
 {
+    DBG(@"[sr] start()");
     if (!NSClassFromString(@"SFSpeechRecognizer") && !self.iSpeechRecognition) {
         [self sendErrorWithMessage:@"No speech recognizer service available." andCode:4];
         return;
@@ -86,7 +163,7 @@
         [self.iSpeechRecognition setFreeformType:ISFreeFormTypeDictation];
         NSError *error;
         if(![self.iSpeechRecognition listenAndRecognizeWithTimeout:10 error:&error]) {
-            NSLog(@"ERROR: %@", error);
+            NSLog(@"[sr] ERROR: %@", error);
         }
     }
 }
@@ -115,9 +192,9 @@
         self.recognitionTask = [self.sfSpeechRecognizer recognitionTaskWithRequest:self.recognitionRequest resultHandler:^(SFSpeechRecognitionResult *result, NSError *error) {
 
             if (error) {
-                NSLog(@"error");
+                NSLog(@"[sr] resultHandler error (%d) %@", (int) error.code, error.description);
                 [self stopAndRelease];
-                [self sendErrorWithMessage:error.localizedFailureReason andCode:error.code];
+                [self sendErrorWithMessage:error.localizedDescription andCode:3];
             }
 
             if(!self.speechStartSent) {
@@ -132,7 +209,7 @@
                     if (alternatives.count < maxAlternatives) {
                         float confMed = 0;
                         for ( SFTranscriptionSegment *transcriptionSegment in transcription.segments ) {
-                            //NSLog(@"transcriptionSegment.confidence %f", transcriptionSegment.confidence);
+                            //NSLog(@"[sr] transcriptionSegment.confidence %f", transcriptionSegment.confidence);
                             confMed +=transcriptionSegment.confidence;
                         }
                         NSMutableDictionary * resultDict = [[NSMutableDictionary alloc]init];
@@ -155,7 +232,7 @@
         }];
 
         AVAudioFormat *recordingFormat = [self.audioEngine.inputNode outputFormatForBus:0];
-
+        DBG1(@"[sr] recordingFormat: sampleRate:%lf", recordingFormat.sampleRate);
         [self.audioEngine.inputNode installTapOnBus:0 bufferSize:1024 format:recordingFormat block:^(AVAudioPCMBuffer * _Nonnull buffer, AVAudioTime * _Nonnull when) {
             [self.recognitionRequest appendAudioPCMBuffer:buffer];
         }],
@@ -169,11 +246,11 @@
 
 - (void) initAudioSession
 {
-    if(!self.audioSession) {
-        self.audioSession = [AVAudioSession sharedInstance];
-        [self.audioSession setMode:AVAudioSessionModeMeasurement error:nil];
-        [self.audioSession setCategory:self.sessionCategory error:nil];
-        [self.audioSession setActive:YES withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
+    NSError *error;
+
+    if(![self.audioSession setActive:YES
+                         withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:&error]) {
+        NSLog(@"[sr] Unable to setActive:YES: %@", error);
     }
 }
 
@@ -198,6 +275,7 @@
 
 -(void) recognition:(ISSpeechRecognition *)speechRecognition didFailWithError:(NSError *)error
 {
+    NSLog(@"[sr] recognition() failed with error (%d) %@", (int) error.code, error.localizedDescription);
     if (error.code == 28 || error.code == 23) {
         [self sendErrorWithMessage:[error localizedDescription] andCode:7];
     }
@@ -220,6 +298,7 @@
 -(void) sendErrorWithMessage:(NSString *)errorMessage andCode:(NSInteger) code
 {
     NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
+    DBG2(@"[sr] sendErrorWithMessage: (%d) %@", (int) code, errorMessage);
     [event setValue:@"error" forKey:@"type"];
     [event setValue:[NSNumber numberWithInteger:code] forKey:@"error"];
     [event setValue:errorMessage forKey:@"message"];
@@ -239,16 +318,19 @@
 
 -(void) stop:(CDVInvokedUrlCommand*)command
 {
+    DBG(@"[sr] stop()");
     [self stopOrAbort];
 }
 
 -(void) abort:(CDVInvokedUrlCommand*)command
 {
+    DBG(@"[sr] abort()");
     [self stopOrAbort];
 }
 
 -(void) stopOrAbort
 {
+    DBG(@"[sr] stopOrAbort()");
     if (NSClassFromString(@"SFSpeechRecognizer")) {
         if (self.audioEngine.isRunning) {
             [self.audioEngine stop];
@@ -265,6 +347,7 @@
 
 -(void) stopAndRelease
 {
+    DBG(@"[sr] stopAndRelease()");
     if (self.audioEngine.isRunning) {
         [self.audioEngine stop];
         [self sendEvent:(NSString *)@"audioend"];
@@ -279,9 +362,18 @@
     }
     self.recognitionTask = nil;
 
+    /* TODO: Disabled for now.
+     * Maybe should be performed by HeadsetControl.disconnect???
+     * Or maybe allow use of a plugin parameter/option to disable this???
     if(self.audioSession) {
-        [self.audioSession setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:nil];
+        NSError *error;
+
+        NSLog(@"setActive:NO");
+        if(![self.audioSession setActive:NO withOptions:AVAudioSessionSetActiveOptionNotifyOthersOnDeactivation error:&error]) {
+            NSLog(@"[sr] Unable to setActive:NO: %@", error);
+        }
     }
+    */
 
     [self sendEvent:(NSString *)@"end"];
 }
