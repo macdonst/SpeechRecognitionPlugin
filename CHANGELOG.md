@@ -52,3 +52,12 @@ Improved compatibility with the W3C specification (https://w3c.github.io/speech-
 * Added support for the `config.xml` preference, `speechRecognitionAllowAudioOutput` to allow iOS apps to also output audio when using this plugin.
 * Added ability to disable use of the iSpeech SDK for iOS using `speechRecognitionApiKey` preference.
 * The `speechRecognitionApiKey` preference now replaces the original `apiKey` preference.
+
+
+Update 2019/01/21
+=================
+
+* Improvements to error handling for Android
+* Added support for "local" serviceURI for Android indicate a preference for offline (local) recognition.
+* Fix to iOS support to allow for use of a Bluetooth Headset.
+* Removed support for iSpeechSDK for iOS. Now requires iOS 10 or newer.
