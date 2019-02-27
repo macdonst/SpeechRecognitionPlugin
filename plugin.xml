@@ -81,11 +81,11 @@
         <source-file src="src/ios/SpeechRecognition.m" />
         <header-file src="src/ios/SpeechRecognition.h" />
         <framework src="Speech.framework" weak="true" />
-        <variable name="MICROPHONE_USAGE_DESCRIPTION" default="Allow for voice recognition." />
+        <preference name="MICROPHONE_USAGE_DESCRIPTION" default="Allow for voice recognition." />
         <config-file target="*-Info.plist" parent="NSMicrophoneUsageDescription">
             <string>$MICROPHONE_USAGE_DESCRIPTION</string>
         </config-file>
-        <variable name="SPEECH_RECOGNITION_USAGE_DESCRIPTION" default="Allow you to provide voice commands to the app." />
+        <preference name="SPEECH_RECOGNITION_USAGE_DESCRIPTION" default="Allow you to provide voice commands to the app." />
         <config-file target="*-Info.plist" parent="NSSpeechRecognitionUsageDescription">
             <string>$SPEECH_RECOGNITION_USAGE_DESCRIPTION</string>
         </config-file>
