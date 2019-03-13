@@ -78,6 +78,23 @@
         route = self.audioSession.currentRoute;
         port = route.inputs[0];
         NSLog(@"[sr] Now using device %@", port.portType);
+    } else if ([reason unsignedIntegerValue] == AVAudioSessionRouteChangeReasonCategoryChange) {
+        NSLog(@"[sr] AVAudioSessionRouteChangeReasonCategoryChange");
+        
+        AVAudioSessionCategory category = [self.audioSession category];
+        
+        NSLog(@"[sr] AVAudioSession category: %@", category);
+        
+        if(![category isEqualToString:AVAudioSessionCategoryRecord] &&
+           ![category isEqualToString:AVAudioSessionCategoryPlayAndRecord]) {
+            if([category isEqualToString:AVAudioSessionCategoryPlayback]) {
+                category = AVAudioSessionCategoryPlayAndRecord;
+            } else {
+                category = self.sessionCategory;
+            }
+            
+            [self.audioSession setCategory:category error:nil];
+        }
     }
 
     if(resetAudioEngine) {
@@ -125,6 +142,7 @@
 
 - (void) recognize
 {
+    DBG(@"[sr] recognize()");
     NSString * lang = [self.command argumentAtIndex:0];
     if (lang && [lang isEqualToString:@"en"]) {
         lang = @"en-US";
@@ -147,6 +165,7 @@
 
 - (void) recordAndRecognizeWithLang:(NSString *) lang
 {
+    DBG1(@"[sr] recordAndRecognizeWithLang(%@)", lang);
     NSLocale *locale = [[NSLocale alloc] initWithLocaleIdentifier:lang];
     self.sfSpeechRecognizer = [[SFSpeechRecognizer alloc] initWithLocale:locale];
     if (!self.sfSpeechRecognizer) {
@@ -212,7 +231,7 @@
         DBG1(@"[sr] recordingFormat: sampleRate:%lf", recordingFormat.sampleRate);
         [self.audioEngine.inputNode installTapOnBus:0 bufferSize:1024 format:recordingFormat block:^(AVAudioPCMBuffer * _Nonnull buffer, AVAudioTime * _Nonnull when) {
             [self.recognitionRequest appendAudioPCMBuffer:buffer];
-        }],
+        }];
 
         [self.audioEngine prepare];
         [self.audioEngine startAndReturnError:nil];
@@ -240,6 +259,7 @@
 -(void) sendResults:(NSArray *) results
 {
     NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
+    DBG(@"[sr] sendResults()");
     [event setValue:@"result" forKey:@"type"];
     [event setValue:nil forKey:@"emma"];
     [event setValue:nil forKey:@"interpretation"];
@@ -249,6 +269,7 @@
     self.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:event];
     [self.pluginResult setKeepCallbackAsBool:YES];
     [self.commandDelegate sendPluginResult:self.pluginResult callbackId:self.command.callbackId];
+    DBG(@"[sr] sendResults() complete");
 }
 
 -(void) sendErrorWithMessage:(NSString *)errorMessage andCode:(NSInteger) code
@@ -261,15 +282,18 @@
     self.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:event];
     [self.pluginResult setKeepCallbackAsBool:NO];
     [self.commandDelegate sendPluginResult:self.pluginResult callbackId:self.command.callbackId];
+    DBG(@"[sr] sendErrorWithMessage() complete");
 }
 
 -(void) sendEvent:(NSString *) eventType
 {
     NSMutableDictionary * event = [[NSMutableDictionary alloc]init];
+    DBG1(@"[sr] sendEvent: %@", eventType);
     [event setValue:eventType forKey:@"type"];
     self.pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:event];
     [self.pluginResult setKeepCallbackAsBool:YES];
     [self.commandDelegate sendPluginResult:self.pluginResult callbackId:self.command.callbackId];
+    DBG(@"[sr] sendEvent() complete");
 }
 
 -(void) stop:(CDVInvokedUrlCommand*)command
