@@ -203,7 +203,7 @@
                 int maxAlternatives = [[self.command argumentAtIndex:2] intValue];
                 for ( SFTranscription *transcription in result.transcriptions ) {
                     if (alternatives.count < maxAlternatives) {
-                        float confMed = 0;
+                        float confMed = 0, confidence;
                         for ( SFTranscriptionSegment *transcriptionSegment in transcription.segments ) {
                             //NSLog(@"[sr] transcriptionSegment.confidence %f", transcriptionSegment.confidence);
                             confMed +=transcriptionSegment.confidence;
@@ -211,7 +211,13 @@
                         NSMutableDictionary * resultDict = [[NSMutableDictionary alloc]init];
                         [resultDict setValue:transcription.formattedString forKey:@"transcript"];
                         [resultDict setValue:[NSNumber numberWithBool:result.isFinal] forKey:@"final"];
-                        [resultDict setValue:[NSNumber numberWithFloat:confMed/transcription.segments.count]forKey:@"confidence"];
+                        if(transcription.segments.count == 0) {
+                            DBG(@"*** No transcriptions for result!");
+                            confidence = 0;
+                        } else {
+                            confidence = confMed/transcription.segments.count;
+                        }
+                        [resultDict setValue:[NSNumber numberWithFloat:confidence] forKey:@"confidence"];
                         [alternatives addObject:resultDict];
                     }
                 }

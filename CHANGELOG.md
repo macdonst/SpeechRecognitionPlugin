@@ -61,3 +61,7 @@ Update 2019/01/21
 * Added support for "local" serviceURI for Android indicate a preference for offline (local) recognition.
 * Fix to iOS support to allow for use of a Bluetooth Headset.
 * Removed support for iSpeechSDK for iOS. Now requires iOS 10 or newer.
+
+Update 2019/03/13
+
+* Fixed exception in iOS from divide by zero due to no transcripts being available.
