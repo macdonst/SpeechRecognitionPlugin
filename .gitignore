@@ -20,4 +20,5 @@ local.properties
 .project
 
 .DS_Store
+.vs
 /node_modules/
