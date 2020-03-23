@@ -1,11 +1,11 @@
 // A collection of responses (used in continuous mode)
-var SpeechRecognitionResultList = function() {
-    this._result = [];
-    this.length = 0;
-};
+// An extension of the Array object to also operate similarly to Chrome's implementation.
+var SpeechRecognitionResultList = function() {};
 
-SpeechRecognitionResultList.prototype.item = function(item) {
-    return this._result[item];
+SpeechRecognitionResultList.prototype = new Array;
+
+SpeechRecognitionResultList.prototype.item = function (item) {
+    return this[item];
 };
 
 module.exports = SpeechRecognitionResultList;

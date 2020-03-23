@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin
     xmlns="http://www.phonegap.com/ns/plugins/1.0"
-    xmlns:android="http://schemas.android.com/apk/res/android" id="phonegap-plugin-speech-recognition" version="0.3.0">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    id="phonegap-plugin-speech-recognition"
+    version="0.3.4">
     <name>SpeechRecognition</name>
     <description>Cordova Speech Recognition Plugin</description>
     <license>MIT</license>
     <keywords>cordova,speech,recognition</keywords>
-    <dependency id="cordova-plugin-compat" version="^1.0.0" />
-    <!-- android -->
+  <engines>
+    <engine name="cordova-android" version=">=6.3.0" />
+  </engines>
+  <!-- android -->
     <platform name="android">
         <js-module src="www/SpeechRecognition.js" name="SpeechRecognition">
             <clobbers target="SpeechRecognition" />
@@ -75,25 +79,13 @@
             </feature>
         </config-file>
         <source-file src="src/ios/SpeechRecognition.m" />
-        <source-file src="src/ios/libiSpeechSDK.a" framework="true" />
         <header-file src="src/ios/SpeechRecognition.h" />
-        <header-file src="src/ios/Headers/iSpeechSDK.h" />
-        <header-file src="src/ios/Headers/ISSpeechRecognition.h" />
-        <header-file src="src/ios/Headers/ISSpeechRecognitionLocales.h" />
-        <header-file src="src/ios/Headers/ISSpeechRecognitionResult.h" />
-        <header-file src="src/ios/Headers/ISSpeechSynthesis.h" />
-        <header-file src="src/ios/Headers/ISSpeechSynthesisVoices.h" />
-        <framework src="AudioToolbox.framework" />
-        <framework src="SystemConfiguration.framework" />
-        <framework src="Security.framework" />
-        <framework src="CFNetwork.framework" />
         <framework src="Speech.framework" weak="true" />
-        <resource-file src="src/ios/iSpeechSDK.bundle" />
-        <preference name="MICROPHONE_USAGE_DESCRIPTION" default=" " />
+        <preference name="MICROPHONE_USAGE_DESCRIPTION" default="Allow for voice recognition." />
         <config-file target="*-Info.plist" parent="NSMicrophoneUsageDescription">
             <string>$MICROPHONE_USAGE_DESCRIPTION</string>
         </config-file>
-        <preference name="SPEECH_RECOGNITION_USAGE_DESCRIPTION" default=" " />
+        <preference name="SPEECH_RECOGNITION_USAGE_DESCRIPTION" default="Allow you to provide voice commands to the app." />
         <config-file target="*-Info.plist" parent="NSSpeechRecognitionUsageDescription">
             <string>$SPEECH_RECOGNITION_USAGE_DESCRIPTION</string>
         </config-file>

@@ -36,7 +36,37 @@ var SpeechRecognition = function () {
     }, "SpeechRecognition", "init", []);
 };
 
-SpeechRecognition.prototype.start = function() {
+function _formatResultEvent(ev) {
+    var event = new SpeechRecognitionEvent();
+
+    event.type = ev.type;
+    event.resultIndex = ev.resultIndex;
+    event.emma = ev.emma;
+    event.interpretation = ev.interpretation;
+
+    for (var i = 0; i < ev.results.length; i++) {
+        var result = new SpeechRecognitionResult();
+        var alt = ev.results[i];
+
+        for (var j = 0; j < alt.length; j++) {
+            var alternative = new SpeechRecognitionAlternative();
+
+            alternative.transcript = alt[j].transcript;
+            alternative.confidence = alt[j].confidence;
+            if (alt[j].final) {
+                result.isFinal = true;
+            }
+
+            result.push(alternative);
+        }
+
+        event.results.push(result);
+    }
+
+    return event;
+}
+
+SpeechRecognition.prototype.start = function () {
     var that = this;
     var successCallback = function(event) {
         if (event.type === "audiostart" && typeof that.onaudiostart === "function") {
@@ -52,9 +82,9 @@ SpeechRecognition.prototype.start = function() {
         } else if (event.type === "audioend" && typeof that.onaudioend === "function") {
             that.onaudioend(event);
         } else if (event.type === "result" && typeof that.onresult === "function") {
-            that.onresult(event);
+            that.onresult(_formatResultEvent(event));
         } else if (event.type === "nomatch" && typeof that.onnomatch === "function") {
-            that.onnomatch(event);
+            that.onnomatch(_formatResultEvent(event));
         } else if (event.type === "start" && typeof that.onstart === "function") {
             that.onstart(event);
         } else if (event.type === "end" && typeof that.onend === "function") {
@@ -63,11 +93,16 @@ SpeechRecognition.prototype.start = function() {
     };
     var errorCallback = function(err) {
         if (typeof that.onerror === "function") {
-            that.onerror(err);
+            var error = new SpeechRecognitionError();
+
+            error.error = SpeechRecognitionError._errorCodes[err.error];
+            error.message = err.message;
+
+            that.onerror(error);
         }
     };
 
-    exec(successCallback, errorCallback, "SpeechRecognition", "start", [this.lang, this.interimResults, this.maxAlternatives]);
+    exec(successCallback, errorCallback, "SpeechRecognition", "start", [this.lang, this.interimResults, this.maxAlternatives, this.serviceURI]);
 };
 
 SpeechRecognition.prototype.stop = function() {

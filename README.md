@@ -1,22 +1,12 @@
 SpeechRecognitionPlugin
 =======================
 
-W3C Web Speech API - Speech Recognition plugin for PhoneGap
+W3C Web Speech API - Speech Recognition plugin for Cordova/PhoneGap
 
-Update 2013/09/05
-=================
+Basic Example
+=============
 
-Back to work on this but it's not ready yet so don't try to use.
-
-Update 2013/08/05
-=================
-
-Hi, you are all probably wondering where the code is after seeing my PhoneGap Day US presentation or reading the slides. Well, I've been dealing with an illness in the family and have not has as much spare time as I would have hoped to update this project. However, things are working out better than I could have hoped for and I should have time to concentrate on this very soon.
-
-Update 2015/04/04
-=================
-
-Basic example is working on iOS and android
+Basic example is working on iOS, Android, and some Browsers.
 ```
 <script type="text/javascript">
 var recognition;
@@ -41,50 +31,102 @@ function onDeviceReady() {
 Example from section 6.1 Speech Recognition Examples of the W3C page
 (https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#examples)
 
-To install the plugin use 
+Installation
+============
+
+To install the plugin from Github, use
 
 ```
-cordova plugin add https://github.com/macdonst/SpeechRecognitionPlugin
+cordova plugin add https://github.com/wifisher/SpeechRecognitionPlugin --variable MICROPHONE_USAGE_DESCRIPTION="your usage message" --variable SPEECH_RECOGNITION_USAGE_DESCRIPTION="your usage message"
 ```
 
-Since iOS 10 it's mandatory to add a `NSMicrophoneUsageDescription` in the info.plist to access the microphone.
+iOS Quirks
+==========
+
+By default, this plugin sets up the app to only allow for audio input.
+As such, after the first recognition request, the app will no longer allow for audio output.
+
+If you need to also support audio output, for example with the `phonegap-plugin-speech-synthesis` plugin,
+enable audio output with the `speechRecognitionAllowAudioOutput` preference in the `config.xml` file:
+```
+ <preference name="speechRecognitionAllowAudioOutput" value="true" />
+```
 
 
-To add this entry you can pass the `MICROPHONE_USAGE_DESCRIPTION` variable on plugin install.
-
-
-Example:
-
-`cordova plugin add https://github.com/macdonst/SpeechRecognitionPlugin --variable MICROPHONE_USAGE_DESCRIPTION="your usage message"`
-
-If the variable is not provided it will use an empty message, but a usage description string is mandatory to submit your app to the Apple Store.
-
+iOS 10 and Newer
+----------------
 
 On iOS 10 and greater it uses the native SFSpeechRecognizer (same as Siri).
 
+Since iOS 10 it's mandatory to add `NSMicrophoneUsageDescription` and `NSSpeechRecognitionUsageDescription` in the info.plist to access the microphone and speech recognition.
+To add this entry you can pass the `MICROPHONE_USAGE_DESCRIPTION` and `SPEECH_RECOGNITION_USAGE_DESCRIPTION` variables on plugin install.
+
+If the variable is not provided it will use an empty message, but a usage description string is mandatory to submit your app to the Apple Store.
+
 Supported locales for SFSpeechRecognizer are:
-ro-RO, en-IN, he-IL, tr-TR, en-NZ, sv-SE, fr-BE, it-CH, de-CH, pl-PL, pt-PT, uk-UA, fi-FI, vi-VN, ar-SA, zh-TW, es-ES, en-GB, yue-CN, th-TH, en-ID, ja-JP, en-SA, en-AE, da-DK, fr-FR, sk-SK, de-AT, ms-MY, hu-HU, ca-ES, ko-KR, fr-CH, nb-NO, en-AU, el-GR, ru-RU, zh-CN, en-US, en-IE, nl-BE, es-CO, pt-BR, es-US, hr-HR, fr-CA, zh-HK, es-MX, id-ID, it-IT, nl-NL, cs-CZ, en-ZA, es-CL, en-PH, en-CA, en-SG, de-DE
+* ar-SA
+* ca-ES
+* cs-CZ
+* da-DK
+* de-AT
+* de-CH
+* de-DE
+* el-GR
+* en-AE
+* en-AU
+* en-CA
+* en-GB
+* en-ID
+* en-IE
+* en-IN
+* en-NZ
+* en-PH
+* en-SA
+* en-SG
+* en-US
+* en-ZA
+* es-CL
+* es-CO
+* es-ES
+* es-MX
+* es-US
+* fi-FI
+* fr-BE
+* fr-CA
+* fr-CH
+* fr-FR
+* he-IL
+* hr-HR
+* hu-HU
+* id-ID
+* it-CH
+* it-IT
+* ja-JP
+* ko-KR
+* ms-MY
+* nb-NO
+* nl-BE
+* nl-NL
+* pl-PL
+* pt-BR
+* pt-PT
+* ro-RO
+* ru-RU
+* sk-SK
+* sv-SE
+* th-TH
+* tr-TR
+* uk-UA
+* vi-VN
+* yue-CN
+* zh-CN
+* zh-HK
+* zh-TW
+* possibly others
 
-Two-character codes can be used too.
+Two-character codes can be used as well.
 
-On iOS 9 and older it uses iSpeech SDK, an API key is required, get one on https://www.ispeech.org/, it's free.
-To provide the key, add this preference inside the config.xml
-```
- <preference name="apiKey" value="yourApiKeyHere" />
- ```
- If none is provided it will use the demo key "developerdemokeydeveloperdemokey"
- 
-iSpeech supported languages are:
- 
-English (Canada) (en-CA) 	
-English (United States) (en-US) 	
-Spanish (Spain) (es-ES) 	
-French (France) (fr-FR) 	
-Italian (Italy) (it-IT) 	
-Polish (Poland) (pl-PL) 	
-Portuguese (Portugal) (pt-PT)
+iOS 9 and Older
+---------------
 
-
-Two-character codes can be used too, but for English, "en" will use "en-US" 
- 
- 
+On iOS 9 and older are not supported.
