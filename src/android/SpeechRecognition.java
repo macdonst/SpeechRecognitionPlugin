@@ -379,15 +379,19 @@ public class SpeechRecognition extends CordovaPlugin {
         @Override
         public void onResults(Bundle results) {
             Log.d(LOG_TAG, "onResults " + results);
-            ArrayList<String> transcript = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-            float[] confidence = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
-            if (transcript.size() > 0) {
-                fireRecognitionEvent("result", transcript, confidence, true);
+            if(started) {
+                ArrayList<String> transcript = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                float[] confidence = results.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES);
+                if (transcript.size() > 0) {
+                    fireRecognitionEvent("result", transcript, confidence, true);
+                } else {
+                    fireRecognitionEvent("nomatch", transcript, confidence, true);
+                }
+                started = false;
+                fireEvent("end");
             } else {
-                fireRecognitionEvent("nomatch", transcript, confidence, true);
+                Log.w(LOG_TAG, "ignore result when not started/or double result");
             }
-            started = false;
-            fireEvent("end");
         }
 
         @Override

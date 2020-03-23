@@ -1,6 +1,6 @@
 {
   "name": "phonegap-plugin-speech-recognition",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Cordova Speech Recognition Plugin",
   "cordova": {
     "id": "phonegap-plugin-speech-recognition",

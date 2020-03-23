@@ -63,5 +63,11 @@ Update 2019/01/21
 * Removed support for iSpeechSDK for iOS. Now requires iOS 10 or newer.
 
 Update 2019/03/13
+=================
 
 * Fixed exception in iOS from divide by zero due to no transcripts being available.
+
+Update 2020/03.23
+=================
+
+* Fixed issue with double results on some Android devices (LG G7 ThinQ for example; API 28)
